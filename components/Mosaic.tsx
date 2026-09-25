@@ -11,9 +11,9 @@ const T = (dx: number, dy: number, s: number) => `translate(${dx}px, ${dy}px) sc
 // Scattered like prints tossed on a table: fixed per index so it's the same on every visit.
 const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${((i * 53) % 13) - 6}vw`, '--y': `${((i * 29) % 9) - 4}vh` })
 
-const ROWS = 3
+const PHONE = '(max-width: 767px)' // phones get four shorter rows instead of three
 const COPIES = 3 // each row is its photos three times over; it drifts within the middle copy and wraps
-const SPEEDS = [26, 21, 31] // px per second, per row: never quite in step, so their gaps never line up for long
+const SPEEDS = [26, 21, 31, 24] // px per second, per row: never quite in step, so their gaps never line up for long
 const RESUME = 1400 // ms after the visitor lets go before a row drifts again
 const DEALT = 14 // prints flicked onto the screen in the intro
 
@@ -47,24 +47,34 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   const deal = useRef<HTMLDivElement>(null)
   const hero = useRef<HTMLImageElement>(null)
   const moved = useRef(false) // a mouse drag just happened, so the click that ends it isn't a tap
-  const rows = Array.from({ length: ROWS }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % ROWS === k))
+  // The server can't know the screen, so it renders three rows; a phone switches to four before
+  // anything shows (the mosaic stays hidden until its intro starts).
+  const [n, setN] = useState(3)
+  useLayoutEffect(() => {
+    const mq = matchMedia(PHONE)
+    const pick = () => setN(mq.matches ? 4 : 3)
+    pick()
+    mq.addEventListener('change', pick)
+    return () => mq.removeEventListener('change', pick)
+  }, [])
+  const rows = Array.from({ length: n }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % n === k))
 
   // Before paint: put each row where it was left, or (first time) the hero in the middle of the top row.
   useLayoutEffect(() => {
     rowRefs.current.forEach((el, k) => {
       if (!el) return
       const W = period(el)
-      if (saved) el.scrollLeft = W + saved[k]
+      if (saved?.length === n) el.scrollLeft = W + saved[k]
       else if (k === 0) {
         const h = el.querySelector<HTMLElement>('[data-hero]')!
         el.scrollLeft = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
       } else {
-        // The lower rows start half a photo apart, like bricks, so their gaps don't line up.
+        // The lower rows start staggered, like bricks, so their gaps don't line up.
         const first = el.querySelector<HTMLElement>('figure')!
-        el.scrollLeft = W + (k === 1 ? first.offsetWidth * 0.5 : first.offsetWidth * 0.1)
+        el.scrollLeft = W + first.offsetWidth * [0, 0.5, 0.1, 0.75][k]
       }
     })
-  }, [])
+  }, [n])
 
   // Decide once on mount whether to play the intro.
   useEffect(() => {
@@ -187,19 +197,19 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       off.forEach((f) => f())
       saved = els.map((el, k) => { const W = period(el); return (((el.scrollLeft + state[k].d - W) % W) + W) % W })
     }
-  }, [phase, dealing, photos])
+  }, [phase, dealing, photos, n])
 
   // The photo passing the middle of the middle row tints the room. Set up on mount, so its first
   // recolor (which restyles the page) isn't at the same moment the drift starts.
   useEffect(() => {
-    const row = rowRefs.current[1]
+    const row = rowRefs.current[1] // second from the top
     if (!row) return
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) if (e.isIntersecting) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
     }, { root: row, rootMargin: '0px -49.5% 0px -49.5%' })
     row.querySelectorAll('figure').forEach((f) => io.observe(f))
     return () => io.disconnect()
-  }, [photos])
+  }, [photos, n])
 
   // Mouse: drag a row sideways (touch and trackpads scroll it natively). It only becomes a drag
   // past a few pixels; capturing the pointer any sooner would send the click to the row instead
@@ -230,7 +240,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   }
 
   return (
-    <section className={`mosaic is-${phase}`} aria-label={label}>
+    <section className={`mosaic is-${phase}`} aria-label={label} style={{ '--rows': n } as React.CSSProperties}>
       <h1 className="sr-only">{title}</h1>
       {rows.map((row, k) => (
         <div
