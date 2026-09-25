@@ -430,19 +430,23 @@ body::after {
 }
 .hgal-track::-webkit-scrollbar { display: none; }
 .hgal-track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
-/* Every photo keeps its full size in the layout (so snapping centers it exactly) and the side ones
-   shrink toward the middle with a scale, which the compositor animates for free. */
+/* Every slide keeps its full size and no transform, because scroll snapping measures the
+   transformed box: scale the slide itself and it snaps off-center, then drifts as it grows.
+   Only the photo inside shrinks toward the middle (compositor-only, so it's free to animate). */
 .hgal-slide {
   flex: none;
   width: min(calc(var(--gh) * var(--ar)), var(--cap));
   scroll-snap-align: center;
+  cursor: pointer;
+}
+.hgal-slide .photo {
   scale: 0.52;
   transform-origin: 100% 50%;
-  cursor: pointer;
   transition: scale 0.55s var(--ease), box-shadow 0.55s var(--ease);
 }
-.hgal-slide.is-after { transform-origin: 0% 50%; }
-.hgal-slide.is-on { scale: 1; cursor: zoom-in; box-shadow: 0 60px 110px -40px #000; }
+.hgal-slide.is-after .photo { transform-origin: 0% 50%; }
+.hgal-slide.is-on { cursor: zoom-in; }
+.hgal-slide.is-on .photo { scale: 1; box-shadow: 0 60px 110px -40px #000; }
 .hgal-controls {
   display: flex;
   align-items: center;
@@ -608,7 +612,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .hgal-slide, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .hgal-slide .photo, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .sleeve, .lightbox, .lightbox-photo { animation: none !important; }
 }

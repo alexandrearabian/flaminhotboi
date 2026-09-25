@@ -33,6 +33,20 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
     return () => io.disconnect()
   }, [photos])
 
+  // The keyboard's arrow keys step through the set from anywhere on the page (the open photo
+  // handles its own).
+  useEffect(() => {
+    if (open !== null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || (e.target as HTMLElement).closest('input, textarea, select')) return
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+      e.preventDefault() // not the browser's own nudge of the track
+      center(active + (e.key === 'ArrowRight' ? 1 : -1))
+    }
+    addEventListener('keydown', onKey)
+    return () => removeEventListener('keydown', onKey)
+  })
+
   const center = (i: number) => {
     const t = track.current!
     const el = t.children[Math.max(0, Math.min(photos.length - 1, i))] as HTMLElement
