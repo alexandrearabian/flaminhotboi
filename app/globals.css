@@ -34,8 +34,12 @@ body {
   overflow-x: clip;
 }
 a { color: inherit; text-decoration: none; }
-a, button { -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+html { -webkit-tap-highlight-color: transparent; } /* no grey flash on tap */
+/* Focus rings only for people moving through the page with Tab (components/Nav.tsx sets
+   data-tab); browsers would otherwise also draw one after a click followed by an arrow key. */
+:focus-visible { outline: none; }
+html[data-tab] :focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+.mrow, .hgal-track, .crate-stage, .lightbox { -webkit-user-select: none; user-select: none; } /* a double click doesn't select photos */
 ::selection { background: var(--gel); color: #fff; }
 h1, h2, h3, p, figure { margin: 0; font-weight: 400; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }

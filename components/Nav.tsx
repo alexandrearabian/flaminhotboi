@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { site, t, type Lang } from '@/lib/i18n'
 
 // Plain text across the top of the screen, staying there while the page scrolls.
@@ -8,6 +9,16 @@ import { site, t, type Lang } from '@/lib/i18n'
 export function Nav({ lang }: { lang: Lang }) {
   const other: Lang = lang === 'en' ? 'es' : 'en'
   const path = usePathname().replace(/^\/(en|es)/, `/${other}`)
+
+  // Focus rings show only while someone is using Tab to move around; a click hides them again.
+  useEffect(() => {
+    const root = document.documentElement
+    const key = (e: KeyboardEvent) => { if (e.key === 'Tab') root.dataset.tab = '' }
+    const point = () => delete root.dataset.tab
+    addEventListener('keydown', key)
+    addEventListener('pointerdown', point)
+    return () => { removeEventListener('keydown', key); removeEventListener('pointerdown', point) }
+  }, [])
   return (
     <header className="nav">
       <Link href={`/${lang}`} className="nav-brand" transitionTypes={['nav-back']}>
