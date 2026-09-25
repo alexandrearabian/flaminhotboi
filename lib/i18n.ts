@@ -5,9 +5,12 @@ import type { Set } from '@/lib/sets'
 export const site = {
   name: 'Ramiro Daneloglu',
   navName: 'Rami', // short form in the nav pill
-  email: 'hello@example.com',
-  // Shown in the footer in this order. Add TikTok, YouTube, WhatsApp (https://wa.me/<number>)… as needed.
-  socials: [{ label: 'Instagram', href: 'https://www.instagram.com/ramidane//' }],
+  email: 'ramidane@hotmail.com.ar',
+  // Shown in the footer in this order. Add TikTok, YouTube, etc. as needed.
+  socials: [
+    { label: 'Instagram', href: 'https://www.instagram.com/ramidane//' },
+    { label: 'WhatsApp', href: 'https://wa.me/5491150183209' },
+  ],
   portrait: '' as string, // e.g. '/portrait.jpg'
 }
 
@@ -40,7 +43,7 @@ export const t = {
     bookings: 'Bookings',
     emailMe: 'Email me',
     bio: [
-      'Placeholder bio. Two or three sentences from the photographer go here: who they are, where they shoot, and what draws them to jazz.',
+      'I'm an advertising creative with a deep love for photography. I believe everything I learn in advertising feeds into my photography and vice versa. My only rule: capture the best photo regardless of the camera, format, or situation.',
     ],
   },
   es: {
@@ -67,7 +70,7 @@ export const t = {
     bookings: 'Contrataciones',
     emailMe: 'Escríbeme',
     bio: [
-      'Biografía provisional. Aquí van dos o tres frases del fotógrafo: quién es, dónde dispara y qué le lleva al jazz.',
+      'Soy creativo publicitario pero también tengo un amor muy profundo con la fotografía. Creo en que todo lo que aprendo en publicidad termina alimentando a mi fotografía y viceversa. Mi única regla en la fotografía es intentar sacar la mejor foto sin importar la cámara, el formato o la situación.',
     ],
   },
 } satisfies Record<Lang, unknown>

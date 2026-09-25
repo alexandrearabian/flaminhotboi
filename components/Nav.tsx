@@ -13,7 +13,7 @@ export function Nav({ lang, hasDesign }: { lang: Lang; hasDesign: boolean }) {
       </Link>
       <nav>
         <Link href={`/${lang}#setlist`} transitionTypes={['nav-back']}>{t[lang].setlist}</Link>
-        {hasDesign && <Link href={`/${lang}/design`} transitionTypes={['nav-forward']}>{t[lang].design}</Link>}
+        {hasDesign && <Link href={`/${lang}#design`} transitionTypes={['nav-back']}>{t[lang].design}</Link>}
         <Link href={`/${lang}/about`} transitionTypes={['nav-forward']}>{t[lang].about}</Link>
         <Link href={path} hrefLang={other} lang={other} className="nav-lang">
           {other.toUpperCase()}

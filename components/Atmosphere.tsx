@@ -34,7 +34,7 @@ export function Atmosphere() {
       if (still) { cur.splice(0, 3, ...target); drawGlow(); drawWaves(2) }
     }
     addEventListener('gel', onGel)
-    const rgba = (mix: number, a: number) => `rgba(${cur.map((c) => Math.round(c + (255 - c) * mix)).join(',')},${a})`
+    const rgba = (mix: number, a: number) => `rgba(${cur.map((c) => Math.round(c + (255 - c) * mix * 0.3)).join(',')},${a})`
 
     const glow = glowRef.current!.getContext('2d')!
     const drawGlow = () => {
@@ -65,15 +65,15 @@ export function Atmosphere() {
     ro.observe(wavesCanvas)
 
     const lines = [
-      { a: 1, alpha: 0.85, mix: 0.4, width: 1.6, phase: 0, main: true },
-      { a: -0.85, alpha: 0.75, mix: 0.35, width: 1.5, phase: 2.1, main: true },
-      { a: 0.7, alpha: 0.7, mix: 0.3, width: 1.4, phase: 4.3, main: true },
-      { a: 0.86, alpha: 0.5, mix: 0.2, width: 1.2, phase: 0.8 },
-      { a: 0.72, alpha: 0.38, mix: 0.12, width: 1.1, phase: 1.6 },
-      { a: 0.6, alpha: 0.28, mix: 0.08, width: 1, phase: 2.4 },
-      { a: 0.48, alpha: 0.22, mix: 0.05, width: 1, phase: 3.2 },
-      { a: 0.36, alpha: 0.16, mix: 0.05, width: 1, phase: 4 },
-      { a: 0.24, alpha: 0.12, mix: 0.05, width: 1, phase: 4.8 },
+      { a: 1, alpha: 0.4, mix: 0.15, width: 1.4, phase: 0, main: true },
+      { a: -0.85, alpha: 0.3, mix: 0.1, width: 1.3, phase: 2.1, main: true },
+      { a: 0.7, alpha: 0.25, mix: 0.08, width: 1.2, phase: 4.3, main: true },
+      { a: 0.86, alpha: 0.2, mix: 0.06, width: 1.1, phase: 0.8 },
+      { a: 0.72, alpha: 0.15, mix: 0.04, width: 1, phase: 1.6 },
+      { a: 0.6, alpha: 0.12, mix: 0.03, width: 0.9, phase: 2.4 },
+      { a: 0.48, alpha: 0.1, mix: 0.02, width: 0.9, phase: 3.2 },
+      { a: 0.36, alpha: 0.08, mix: 0.02, width: 0.8, phase: 4 },
+      { a: 0.24, alpha: 0.06, mix: 0.01, width: 0.8, phase: 4.8 },
     ]
     const drawWaves = (t: number) => {
       const amp = h * 0.3 * (0.8 + 0.45 * energy)
@@ -105,10 +105,10 @@ export function Atmosphere() {
 
     let raf = 0
     const loop = (ms: number) => {
-      // Fade toward the new stage color (~1.2s); the glow only redraws while it's changing.
+      // Fade toward the new stage color (~2.5s, much slower); the glow only redraws while it's changing.
       const d = target.map((v, i) => v - cur[i])
       if (d.some((v) => Math.abs(v) > 0.5)) {
-        d.forEach((v, i) => (cur[i] += v * 0.06))
+        d.forEach((v, i) => (cur[i] += v * 0.025))
         glowDirty = true
       }
       if (glowDirty) { drawGlow(); glowDirty = false }

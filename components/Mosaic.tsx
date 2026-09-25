@@ -81,7 +81,10 @@ export function Mosaic({ photos, title, footer, alt, labels }: {
       setPhase('settling')
       await img.animate([{ transform: T(dx, dy, sCover) }, { transform: 'none' }],
         { duration: 1150, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
-      if (!cancelled) setPhase('done')
+      if (!cancelled) {
+        img.style.opacity = '0' // hide the hero image before unmounting deal
+        setPhase('done')
+      }
     }
     run().catch(() => {}) // animations reject if the intro is skipped mid-flight
     return () => { cancelled = true; events.forEach((e) => removeEventListener(e, skip)) }

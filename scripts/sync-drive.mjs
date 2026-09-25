@@ -16,13 +16,15 @@ const FEATURED = /^mosaico principal$/i // this folder feeds the home page's ope
 const DESIGN = /^music design$/i // design work: its own page, not a concert
 const FEATURED_COUNT = 12 // first N photos by filename; ponytail: raise it or make the reel faster if they want more
 
-// "2026-03-14 — Artist — Venue, City" gives full details (em dash, en dash or hyphen, spaced).
-// Anything else ("Fer Moreno") is just the title; missing details are left empty.
+// "01-2026-03-14 — Artist — Venue, City" or "01-Artist" for custom sort order.
+// Numeric prefix (01-, 02-, etc) sets sort order; removed from artist name.
 export function parseFolderName(name) {
-  const m = name.trim().match(/^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(.+?)\s+[—–-]\s+(.+?)(?:,\s*([^,]+))?$/)
-  if (!m) return { date: '', artist: name.trim(), venue: '', city: '' }
+  const order = name.match(/^(\d{2})-/)
+  const clean = order ? name.slice(3) : name
+  const m = clean.trim().match(/^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(.+?)\s+[—–-]\s+(.+?)(?:,\s*([^,]+))?$/)
+  if (!m) return { order: order ? parseInt(order[1]) : Infinity, date: '', artist: clean.trim(), venue: '', city: '' }
   const [, date, artist, venue, city = ''] = m
-  return { date, artist: artist.trim(), venue: venue.trim(), city: city.trim() }
+  return { order: order ? parseInt(order[1]) : Infinity, date, artist: artist.trim(), venue: venue.trim(), city: city.trim() }
 }
 
 // Promise.all with at most `limit` in flight; keeps input order.
@@ -71,9 +73,34 @@ function hslToHex(h, s, l) {
 
 function loadServiceAccount() {
   const raw = process.env.GOOGLE_SA_JSON?.trim()
-  if (!raw) return null
+  if (!raw || raw === '[SENSITIVE]') return null
   // Vercel: paste the JSON itself. Locally: a path to the downloaded key file also works.
-  return JSON.parse(raw.startsWith('{') ? raw : readFileSync(raw, 'utf8'))
+  if (raw.startsWith('{')) return JSON.parse(raw)
+  if (!existsSync(raw)) throw new Error(`GOOGLE_SA_JSON points at ${raw}, which is not on this machine. On Vercel, paste the service account JSON itself.`)
+  return JSON.parse(readFileSync(raw, 'utf8'))
+}
+
+// `vercel build` pulls sensitive vars as the literal "[SENSITIVE]" and sets them before this
+// script runs. loadEnvFile will not replace those, so fill them from .env / .env.local.
+function loadLocalEnv() {
+  const fromFile = {}
+  for (const path of ['.env', '.env.local']) {
+    let text
+    try { text = readFileSync(path, 'utf8') } catch { continue }
+    for (const line of text.split('\n')) {
+      const t = line.trim()
+      if (!t || t.startsWith('#')) continue
+      const i = t.indexOf('=')
+      if (i < 1) continue
+      let val = t.slice(i + 1).trim()
+      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) val = val.slice(1, -1)
+      fromFile[t.slice(0, i).trim()] = val
+    }
+  }
+  for (const [key, val] of Object.entries(fromFile)) {
+    const current = process.env[key]
+    if (current == null || current === '' || current === '[SENSITIVE]') process.env[key] = val
+  }
 }
 
 async function driveSource(sa, rootId) {
@@ -207,10 +234,7 @@ async function processPhoto(file) {
 }
 
 async function main() {
-  // .env.local wins: loadEnvFile does not override variables that are already set.
-  for (const file of ['.env.local', '.env']) {
-    try { process.loadEnvFile(file) } catch {}
-  }
+  loadLocalEnv()
   const sa = loadServiceAccount()
   const rootId = process.env.DRIVE_ROOT_FOLDER_ID
   let folders
@@ -255,8 +279,8 @@ async function main() {
     sets.push({ slug, ...info, created: folder.created ?? '', cover: photos[Math.min(coverIdx, photos.length - 1)], photos })
     console.log(`  ${info.artist}${info.date ? `  ${info.date}` : ''}  (${photos.length} photos)`)
   }
-  // Newest first: the date from the folder name, else when the folder was created in Drive.
-  sets.sort((a, b) => (b.date || b.created).localeCompare(a.date || a.created))
+  // Sort by custom order (numeric prefix) first, then by date. Sets without prefix sort last.
+  sets.sort((a, b) => a.order - b.order || (b.date || b.created).localeCompare(a.date || a.created))
 
   // Rebuild public/photos from cache so deleted photos disappear from the site.
   // ponytail: cache dir is never pruned; clear .next/cache/drive if it ever gets big.

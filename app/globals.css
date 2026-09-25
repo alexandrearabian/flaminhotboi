@@ -13,7 +13,7 @@
   --dim: #9a948c;
   --accent: color-mix(in oklab, var(--gel), #fff 50%);
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
-  --font-mono: ui-monospace;
+  --font-body: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
   /* Home filmstrip geometry, shared with the waves: through its middle on desktop, along its
@@ -36,7 +36,7 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  font: 400 0.9375rem/1.65 var(--font-mono), ui-monospace, monospace;
+  font: 400 0.9375rem/1.65 var(--font-body);
   overflow-x: clip;
 }
 a { color: inherit; text-decoration: none; }
@@ -409,6 +409,30 @@ body::after {
 .about-bio h1 { margin-bottom: 1rem; }
 .about-bio p { max-width: 58ch; }
 .about-photo { width: 100%; height: auto; box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95); }
+
+/* ---------- design section: grid of pieces at bottom of home page ---------- */
+.design-section {
+  padding: clamp(6rem, 18vh, 11rem) var(--gutter) 0;
+}
+.design-section > .display-xl {
+  margin-bottom: clamp(2rem, 8vh, 6rem);
+}
+.design-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  padding-bottom: clamp(4rem, 12vh, 8rem);
+}
+.design-grid img {
+  width: 100%;
+  height: auto;
+  display: block;
+  box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
+  transition: transform 0.5s var(--ease);
+}
+.design-grid img:hover {
+  transform: scale(1.03);
+}
 
 /* ---------- footer: bookings ---------- */
 .footer {
