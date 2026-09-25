@@ -26,7 +26,7 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
               decoding="async"
             />
           ))}
-          <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
+            <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
         </div>
         <div className="set-info">
           <div className="set-title">

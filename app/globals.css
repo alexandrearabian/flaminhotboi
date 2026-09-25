@@ -372,11 +372,7 @@ body::after {
 .hgal-slide.is-on { cursor: zoom-in; }
 .hgal-slide .photo { box-shadow: 0 50px 100px -45px #000; }
 @supports (animation-timeline: view()) {
-  /* The resting state matches where the animation starts on arrival (first photo centered, the rest
-     shrunk toward it): the browser attaches scroll-driven animations a frame or two after the page
-     appears, and without this every photo showed full size for those frames, then snapped. */
-  .hgal-slide .photo { scale: 0.55; translate: -22.5% 0; animation: hgal-focus linear both; animation-timeline: --slide; }
-  .hgal-slide:first-child .photo { scale: 1; translate: 0 0; }
+  .hgal-slide .photo { animation: hgal-focus linear both; animation-timeline: --slide; }
 }
 /* Shrinks toward the middle: scaled from its center, then shifted in by half of what it lost
    ((1 - 0.55) / 2 = 22.5%). Only scale and translate, so it all stays on the compositor
@@ -555,7 +551,6 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .mrow, .mrow figure, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .sleeve, .hgal-slide .photo { animation: none !important; }
-  .hgal-slide .photo { scale: 1 !important; translate: none !important; }
 }
 
 /* ---------- mobile ---------- */
