@@ -8,7 +8,7 @@ export function Footer({ lang }: { lang: Lang }) {
       <div className="footer-book">
         <h2 className="display-xl">{tr.bookings}</h2>
         <p className="footer-line">{tr.bookingLine}</p>
-        <a href={`mailto:${site.email}`} className="cta cta-lg">
+        <a href={`mailto:${site.email}`} className="cta cta-lg glass">
           {tr.emailMe}
           <span className="cta-icon" aria-hidden>↗</span>
         </a>

@@ -19,7 +19,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
             footer={
               <div className="mosaic-lede">
                 <p>{tr.tagline}</p>
-                <a href="#setlist" className="cta">
+                <a href="#setlist" className="cta glass">
                   {tr.seeSets}
                   <span className="cta-icon" aria-hidden>↓</span>
                 </a>

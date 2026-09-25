@@ -35,7 +35,7 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
           <span className="set-label">{label}</span>
           <h3 className="set-name">{set.artist}</h3>
           {details(set).length > 0 && <p className="set-details">{details(set).join('   ')}</p>}
-          <span className="cta">
+          <span className="cta glass">
             {tr.openSet}
             <span className="cta-count">{set.photos.length} {tr.photos}</span>
             <span className="cta-icon" aria-hidden>→</span>

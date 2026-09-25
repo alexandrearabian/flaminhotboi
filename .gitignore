@@ -10,3 +10,4 @@ public/photos
 data/sets.json
 # local test photos, not for the repo
 fixtures
+.vercel

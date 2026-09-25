@@ -7,7 +7,7 @@ export function Nav({ lang, hasDesign }: { lang: Lang; hasDesign: boolean }) {
   const other: Lang = lang === 'en' ? 'es' : 'en'
   const path = usePathname().replace(/^\/(en|es)/, `/${other}`)
   return (
-    <header className="nav">
+    <header className="nav glass">
       <Link href={`/${lang}`} className="nav-brand" transitionTypes={['nav-back']}>
         {site.navName}
       </Link>

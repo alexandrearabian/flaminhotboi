@@ -158,8 +158,8 @@ export function Mosaic({ photos, title, footer, alt, labels }: {
       <div className="mosaic-foot">
         {footer}
         <div className="mosaic-arrows">
-          <button type="button" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>←</button>
-          <button type="button" onClick={() => center(active + 1)} disabled={active === n - 1} aria-label={labels.next}>→</button>
+          <button type="button" className="glass" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>←</button>
+          <button type="button" className="glass" onClick={() => center(active + 1)} disabled={active === n - 1} aria-label={labels.next}>→</button>
         </div>
       </div>
 
