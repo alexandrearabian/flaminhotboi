@@ -121,8 +121,10 @@ export function Mosaic({ photos, title, alt, label, labels }: {
 
   // The drift. Rows are real scrollers (so swiping, trackpads and momentum are native); this just
   // nudges each one along every frame unless the visitor has had hold of it in the last moment.
+  // It waits for the intro's hero to finish landing (moving its tile sooner makes the handoff
+  // jump), then eases up to speed.
   useEffect(() => {
-    if (phase !== 'done') return
+    if (phase !== 'done' || dealing) return
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
     const state = els.map((el) => ({ pos: el.scrollLeft, until: 0 }))
@@ -136,9 +138,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     })
 
     let raf = 0, last = performance.now()
+    const start = last
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
-      const dt = Math.min(0.05, (now - last) / 1000)
+      const ramp = Math.min(1, (now - start) / 1500) ** 2
+      const dt = Math.min(0.05, (now - last) / 1000) * ramp
       last = now
       els.forEach((el, k) => {
         const s = state[k]
@@ -164,7 +168,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       off.forEach((f) => f())
       saved = els.map((el) => { const W = el.scrollWidth / COPIES; return (((el.scrollLeft - W) % W) + W) % W })
     }
-  }, [phase, photos])
+  }, [phase, dealing, photos])
 
   // Mouse: drag a row sideways (touch and trackpads scroll it natively).
   const drag = (e: React.PointerEvent<HTMLDivElement>) => {

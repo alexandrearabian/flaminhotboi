@@ -165,7 +165,7 @@ body::after {
 .mosaic {
   display: grid;
   grid-template-rows: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.5rem, 1.2vw, 1rem);
+  gap: clamp(1rem, 2.2vw, 2rem);
   height: 100svh;
   min-height: 30rem;
   padding: 6rem 0 clamp(0.75rem, 2vh, 1.5rem); /* clears the nav */
@@ -173,12 +173,12 @@ body::after {
 .mrow {
   position: relative;
   display: flex;
-  gap: clamp(0.5rem, 1.2vw, 1rem);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   cursor: grab;
+  gap: clamp(1rem, 2.2vw, 2rem);
 }
 .mrow::-webkit-scrollbar { display: none; }
 .mrow.is-dragging { cursor: grabbing; }
