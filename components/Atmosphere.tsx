@@ -18,8 +18,9 @@ const BEAMS = [
 ]
 
 // The room behind the photos: a few faint beams in the current stage color, sweeping slowly on
-// black. Drawn on a tiny canvas the browser stretches to full screen (soft light needs no
-// resolution), so animating it costs next to nothing. Fades to the color of the photo on stage.
+// black. Drawn small and stretched to full screen (soft light needs little resolution), so
+// animating it is cheap; drawn too small, though, the stretch shows as blocky stair-steps, so the
+// beams are drawn at 320x180 and softened with one blur. Fades to the color of the photo on stage.
 export function Atmosphere() {
   const ref = useRef<HTMLCanvasElement>(null)
 
@@ -28,8 +29,11 @@ export function Atmosphere() {
     const initial = parse(getComputedStyle(document.documentElement).getPropertyValue('--gel')) ?? [34, 48, 195]
     const cur: RGB = [...initial]
     let target: RGB = [...initial]
-    const ctx = ref.current!.getContext('2d')!
-    const { width: W, height: H } = ctx.canvas
+    const out = ref.current!.getContext('2d')!
+    const { width: W, height: H } = out.canvas
+    // Beams are drawn sharp off-screen, then copied through a single blur.
+    const ctx = Object.assign(document.createElement('canvas'), { width: W, height: H }).getContext('2d')!
+    const soft = 'filter' in out
     const rgba = (a: number) => `rgba(${cur.map(Math.round).join(',')},${a})`
 
     const draw = (t: number) => {
@@ -39,7 +43,7 @@ export function Atmosphere() {
       for (const b of BEAMS) {
         const ox = b.x * W, oy = -0.2 * H, len = H * 1.7
         const aim = b.aim + b.sweep * Math.sin(t * b.speed * 2 * Math.PI + b.phase)
-        // Nested cones, dimmest widest: a soft edge on a canvas this small.
+        // Nested cones, dimmest widest, for a soft falloff across the beam.
         for (const [spread, k] of [[0.2, 0.35], [0.13, 0.35], [0.07, 0.3]]) {
           const fill = ctx.createRadialGradient(ox, oy, 0, ox, oy, len)
           fill.addColorStop(0, rgba(b.alpha * k))
@@ -53,6 +57,9 @@ export function Atmosphere() {
           ctx.fill()
         }
       }
+      out.clearRect(0, 0, W, H)
+      if (soft) out.filter = 'blur(7px)'
+      out.drawImage(ctx.canvas, 0, 0)
     }
 
     const onGel = (e: Event) => {
@@ -79,5 +86,5 @@ export function Atmosphere() {
     }
   }, [])
 
-  return <canvas ref={ref} className="glow" width={96} height={54} aria-hidden />
+  return <canvas ref={ref} className="glow" width={320} height={180} aria-hidden />
 }

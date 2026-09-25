@@ -8,7 +8,7 @@ export const site = {
   email: 'ramidane@hotmail.com.ar',
   // Shown in the footer in this order. Add TikTok, YouTube, etc. as needed.
   socials: [
-    { label: 'Instagram', href: 'https://www.instagram.com/ramidane//' },
+    { label: 'Instagram', href: 'https://www.instagram.com/ramidane/' },
     { label: 'WhatsApp', href: 'https://wa.me/5491150183209' },
   ],
   portrait: '' as string, // e.g. '/portrait.jpg'
@@ -42,8 +42,11 @@ export const t = {
     empty: 'No works yet. New concerts show up here within a day of being added.',
     bookings: 'Bookings',
     emailMe: 'Email me',
+    // One sentence per entry: the first is set large, the last is set apart as the closing line.
     bio: [
-      "I'm an advertising creative with a deep love for photography. I believe everything I learn in advertising feeds into my photography and vice versa. My only rule: capture the best photo regardless of the camera, format, or situation.",
+      "I'm an advertising creative with a deep love for photography.",
+      'I believe everything I learn in advertising feeds into my photography and vice versa.',
+      'My only rule: capture the best photo regardless of the camera, format, or situation.',
     ],
   },
   es: {
@@ -70,7 +73,9 @@ export const t = {
     bookings: 'Contrataciones',
     emailMe: 'Escríbeme',
     bio: [
-      'Soy creativo publicitario pero también tengo un amor muy profundo con la fotografía. Creo en que todo lo que aprendo en publicidad termina alimentando a mi fotografía y viceversa. Mi única regla en la fotografía es intentar sacar la mejor foto sin importar la cámara, el formato o la situación.',
+      'Soy creativo publicitario pero también tengo un amor muy profundo con la fotografía.',
+      'Creo en que todo lo que aprendo en publicidad termina alimentando a mi fotografía y viceversa.',
+      'Mi única regla en la fotografía es intentar sacar la mejor foto sin importar la cámara, el formato o la situación.',
     ],
   },
 } satisfies Record<Lang, unknown>

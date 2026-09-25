@@ -286,18 +286,27 @@ body::after {
 .back { color: var(--accent); transition: color 0.4s var(--ease); }
 .back:hover { color: var(--ink); }
 
-/* ---------- about ---------- */
+/* ---------- about: name across the top, then the bio beside the photo ---------- */
 .about {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  column-gap: clamp(2rem, 7vw, 7rem);
   align-items: start;
-  gap: var(--gutter);
   padding: clamp(6rem, 18vh, 12rem) var(--gutter) 4rem; /* same drop below the nav as the Work page */
 }
-.about-bio { display: grid; gap: 1.25rem; }
-.about-bio h1 { margin-bottom: 1rem; }
-.about-bio p { max-width: 58ch; }
-.about-photo { width: 100%; height: auto; box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95); }
+.about-name { grid-column: 1 / -1; margin-bottom: clamp(3rem, 9vh, 6.5rem); white-space: nowrap; }
+.about-bio { display: grid; gap: 1.5rem; padding-top: 0.4rem; }
+/* The opening line large; the middle as body text; the rule set apart below a short accent line. */
+.about-bio p { max-width: 44ch; font-size: 1.0625rem; line-height: 1.7; color: rgb(236 231 223 / 0.78); }
+.about-bio p:first-child { max-width: 24ch; font-size: clamp(1.4rem, 2.2vw, 2rem); line-height: 1.3; color: var(--ink); text-wrap: balance; }
+.about-bio p:last-child:not(:first-child) { margin-top: 1rem; padding-top: 1.75rem; position: relative; color: var(--ink); }
+.about-bio p:last-child:not(:first-child)::before { content: ''; position: absolute; top: 0; left: 0; width: 2.5rem; height: 1px; background: var(--accent); }
+.about-photo {
+  justify-self: end;
+  width: min(100%, calc(78svh * var(--ar, 0.8)));
+  height: auto;
+  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
+}
 
 /* ---------- set page intro ---------- */
 .set-intro {
@@ -562,5 +571,11 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .set-block { padding-block: 4rem; }
 
 
-  .about, .footer { grid-template-columns: 1fr; align-items: start; }
+  .footer { grid-template-columns: 1fr; align-items: start; }
+  .about { grid-template-columns: 1fr; padding: 7.5rem var(--gutter) 3rem; } /* clears a two-line nav */
+  .about-name { white-space: normal; margin-bottom: 2rem; }
+  .about-bio { gap: 1.1rem; padding-top: 0; }
+  .about-bio p { font-size: 1rem; }
+  .about-bio p:first-child { font-size: 1.35rem; }
+  .about-photo { justify-self: stretch; width: 100%; margin-top: 3rem; }
 }

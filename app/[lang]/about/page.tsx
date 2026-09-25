@@ -19,14 +19,18 @@ export default async function About({ params }: { params: Promise<{ lang: string
       default="none"
     >
       <main id="main" className="about">
+        <h1 className="display-xl about-name">{site.name}</h1>
         <div className="about-bio">
-          <h1 className="display-xl">{site.name}</h1>
           {tr.bio.map((p) => <p key={p}>{p}</p>)}
         </div>
         {site.portrait ? (
           <img className="about-photo" src={site.portrait} alt={site.name} />
         ) : (
-          shot && <Photo p={shot} alt={tr.photoBy(site.name)} sizes="(min-width: 768px) 40vw, 100vw" className="about-photo" />
+          shot && (
+            <figure className="about-photo" style={{ '--ar': shot.w / shot.h } as React.CSSProperties}>
+              <Photo p={shot} alt={tr.photoBy(site.name)} sizes="(min-width: 768px) 40vw, 100vw" />
+            </figure>
+          )
         )}
       </main>
     </ViewTransition>
