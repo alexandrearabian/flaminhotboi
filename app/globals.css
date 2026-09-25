@@ -290,10 +290,9 @@ body::after {
 .about {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  align-items: end;
+  align-items: start;
   gap: var(--gutter);
-  min-height: 100dvh;
-  padding: 8rem var(--gutter) 4rem;
+  padding: clamp(6rem, 18vh, 12rem) var(--gutter) 4rem; /* same drop below the nav as the Work page */
 }
 .about-bio { display: grid; gap: 1.25rem; }
 .about-bio h1 { margin-bottom: 1rem; }
