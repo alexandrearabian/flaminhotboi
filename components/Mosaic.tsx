@@ -9,6 +9,24 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 const T = (dx: number, dy: number, s: number) => `translate(${dx}px, ${dy}px) scale(${s})`
 // Scattered like prints tossed on a table: fixed per index so it's the same on every visit.
 const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${((i * 53) % 13) - 6}vw`, '--y': `${((i * 29) % 9) - 4}vh` })
+// Asymmetric bento grid: variable spans create premium mosaic
+const gridSpan = (i: number) => {
+  const spans = [
+    { col: 2, row: 2 }, // 0: hero
+    { col: 1, row: 1 }, // 1
+    { col: 1, row: 2 }, // 2
+    { col: 2, row: 1 }, // 3
+    { col: 1, row: 1 }, // 4
+    { col: 1, row: 1 }, // 5
+    { col: 2, row: 1 }, // 6
+    { col: 1, row: 1 }, // 7
+    { col: 1, row: 1 }, // 8
+    { col: 1, row: 2 }, // 9
+    { col: 2, row: 1 }, // 10
+    { col: 1, row: 1 }, // 11
+  ]
+  return spans[i % spans.length]
+}
 
 // Opening sequence, first visit per tab: every main photo is dealt onto the screen like a stack
 // of prints, fast; the last one lands, fills the room, then pulls back into a filmstrip.
@@ -21,10 +39,13 @@ export function Mosaic({ photos, title, footer, alt, labels }: {
 }) {
   const [phase, setPhase] = useState<Phase>('pending')
   const [active, setActive] = useState(0)
+  const [gridDrag, setGridDrag] = useState<{ id: string; x: number; y: number } | null>(null)
+  const [photoOffsets, setPhotoOffsets] = useState<Record<string, { x: number; y: number }>>({})
   const track = useRef<HTMLDivElement>(null)
   const deal = useRef<HTMLDivElement>(null)
   const hero = useRef<HTMLImageElement>(null)
   const drag = useRef({ x: 0, left: 0, moved: false, on: false })
+  const gridRef = useRef<HTMLDivElement>(null)
 
   // Decide once on mount whether to play the intro.
   useEffect(() => {
@@ -124,13 +145,44 @@ export function Mosaic({ photos, title, footer, alt, labels }: {
       <h1 className="sr-only">{title}</h1>
 
       {phase === 'done' ? (
-        // Grid layout after animation
-        <div className="mosaic-grid">
-          {photos.map((p, i) => (
-            <figure key={p.id} className="mosaic-grid-item" style={{ '--ar': p.w / p.h } as React.CSSProperties}>
-              <Photo p={p} alt={alt} sizes="(min-width: 768px) 40vw, 90vw" priority={i === 0} />
-            </figure>
-          ))}
+        // Premium asymmetric grid with draggable photos
+        <div ref={gridRef} className="mosaic-grid" onMouseMove={(e) => {
+          if (!gridDrag) return
+          const grid = gridRef.current
+          if (!grid) return
+          const dx = e.clientX - gridDrag.x
+          const dy = e.clientY - gridDrag.y
+          setPhotoOffsets(o => ({ ...o, [gridDrag.id]: { x: o[gridDrag.id]?.x ?? 0, y: o[gridDrag.id]?.y ?? 0 } }))
+          setGridDrag({ ...gridDrag, x: e.clientX, y: e.clientY })
+          const item = grid.querySelector(`[data-photo-id="${gridDrag.id}"]`) as HTMLElement
+          if (item) {
+            const current = photoOffsets[gridDrag.id] ?? { x: 0, y: 0 }
+            item.style.transform = `translate(${current.x + dx}px, ${current.y + dy}px)`
+          }
+        }} onMouseUp={() => setGridDrag(null)} onMouseLeave={() => setGridDrag(null)}>
+          {photos.map((p, i) => {
+            const span = gridSpan(i)
+            const offset = photoOffsets[p.id] ?? { x: 0, y: 0 }
+            return (
+              <figure
+                key={p.id}
+                data-photo-id={p.id}
+                className="mosaic-grid-item"
+                style={{
+                  '--ar': p.w / p.h,
+                  '--col-span': span.col,
+                  '--row-span': span.row,
+                  transform: `translate(${offset.x}px, ${offset.y}px)`,
+                  cursor: gridDrag?.id === p.id ? 'grabbing' : 'grab',
+                } as React.CSSProperties}
+                onMouseDown={(e) => {
+                  setGridDrag({ id: p.id, x: e.clientX, y: e.clientY })
+                }}
+              >
+                <Photo p={p} alt={alt} sizes="(min-width: 768px) 40vw, 90vw" priority={i === 0} />
+              </figure>
+            )
+          })}
         </div>
       ) : (
         // Filmstrip during animation
