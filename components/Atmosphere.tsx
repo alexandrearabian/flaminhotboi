@@ -40,7 +40,7 @@ export function Atmosphere() {
     const drawGlow = () => {
       const { width: W, height: H } = glow.canvas
       glow.clearRect(0, 0, W, H)
-      for (const [x, y, r, a] of [[0.1, -0.12, 0.95, 0.5], [1.02, 1.1, 0.8, 0.32]]) {
+      for (const [x, y, r, a] of [[0.1, -0.12, 0.95, 0.16], [1.02, 1.1, 0.8, 0.09]]) { // a faint tint on black, never a wash
         const g = glow.createRadialGradient(x * W, y * H, 0, x * W, y * H, r * W)
         g.addColorStop(0, rgba(0.05, a))
         g.addColorStop(1, rgba(0, 0))

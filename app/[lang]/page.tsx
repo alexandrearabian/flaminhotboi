@@ -15,7 +15,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
             photos={featured}
             title={site.name}
             alt={tr.photoBy(site.name)}
-            labels={{ prev: tr.prev, next: tr.next, strip: tr.selected }}
+            label={tr.selected}
             footer={
               <div className="mosaic-lede">
                 <p>{tr.tagline}</p>
