@@ -1,12 +1,11 @@
 import Link from 'next/link'
-import { ViewTransition } from 'react'
 import { Photo } from '@/components/Photo'
 import { Reveal } from '@/components/Reveal'
 import { details, t, type Lang } from '@/lib/i18n'
 import type { Set } from '@/lib/sets'
 
 // One concert: its cover on top of a fanned stack of the set's other photos, so it reads as
-// "there's more in here". The cover morphs into the set page when opened.
+// "there's more in here".
 export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; label: string; flip?: boolean }) {
   const tr = t[lang]
   const peek = set.photos.filter((p) => p.id !== set.cover.id).slice(0, 3)
@@ -27,9 +26,7 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
               decoding="async"
             />
           ))}
-          <ViewTransition name={`cover-${set.slug}`} share="morph" default="none">
-            <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
-          </ViewTransition>
+          <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
         </div>
         <div className="set-info">
           <div className="set-title">

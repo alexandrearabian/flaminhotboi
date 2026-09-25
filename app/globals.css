@@ -548,7 +548,6 @@ html:has(.lightbox[open]) { overflow: hidden; }
 ::view-transition-new(.nav-forward) { --slide: 56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
 ::view-transition-old(.nav-back) { --slide: 56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
 ::view-transition-new(.nav-back) { --slide: -56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
-::view-transition-group(.morph) { animation-duration: var(--vt-move); animation-timing-function: var(--ease); }
 
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
