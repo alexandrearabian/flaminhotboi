@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { site, t, type Lang } from '@/lib/i18n'
 
-// Plain text across the top of the page, scrolling away with it (nothing floats over the photos).
+// Plain text across the top of the screen, staying there while the page scrolls.
 // The language switch shows the language you're reading in; it links to the other one.
 export function Nav({ lang, hasDesign }: { lang: Lang; hasDesign: boolean }) {
   const other: Lang = lang === 'en' ? 'es' : 'en'

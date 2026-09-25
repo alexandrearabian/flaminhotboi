@@ -105,9 +105,13 @@ body::after {
   .glass { background: rgb(22 20 20 / 0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
-/* ---------- nav: plain text along the top of the page, no container ---------- */
+/* ---------- nav: plain text along the top, staying put while the page scrolls ----------
+   No container: a soft dark shadow behind the letters keeps them legible over any photo, and
+   only the links take clicks, so prints under the empty stretch can still be grabbed. */
 .nav {
-  position: absolute;
+  position: fixed;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.55), 0 2px 16px rgb(0 0 0 / 0.7);
   top: 0;
   left: 0;
   right: 0;
@@ -120,9 +124,10 @@ body::after {
   padding: 1.6rem var(--gutter);
   view-transition-name: nav;
 }
+.nav a { pointer-events: auto; }
 .nav-brand { font: 1.5rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.05em; text-transform: uppercase; }
 .nav nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem clamp(1.1rem, 2.6vw, 2.25rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap; }
-.nav nav a { color: var(--dim); transition: color 0.35s var(--ease); }
+.nav nav a { color: rgb(236 231 223 / 0.8); transition: color 0.35s var(--ease); }
 .nav nav a:hover, .nav nav .nav-lang { color: var(--ink); }
 
 /* ---------- pill CTA with nested icon (uses .glass) ---------- */

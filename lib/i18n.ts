@@ -21,7 +21,6 @@ export const isLang = (l: string): l is Lang => (langs as readonly string[]).inc
 export const t = {
   en: {
     tagline: 'Art.',
-    seeSets: 'See the sets',
     setlist: 'Work',
     about: 'About',
     advertising: 'Advertising',
@@ -49,7 +48,6 @@ export const t = {
   },
   es: {
     tagline: 'Arte.',
-    seeSets: 'Ver los sets',
     setlist: 'Work',
     about: 'Sobre mí',
     advertising: 'Publicidades',
