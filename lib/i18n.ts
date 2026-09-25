@@ -43,7 +43,7 @@ export const t = {
     bookings: 'Bookings',
     emailMe: 'Email me',
     bio: [
-      'I'm an advertising creative with a deep love for photography. I believe everything I learn in advertising feeds into my photography and vice versa. My only rule: capture the best photo regardless of the camera, format, or situation.',
+      "I'm an advertising creative with a deep love for photography. I believe everything I learn in advertising feeds into my photography and vice versa. My only rule: capture the best photo regardless of the camera, format, or situation.",
     ],
   },
   es: {

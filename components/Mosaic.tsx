@@ -123,48 +123,61 @@ export function Mosaic({ photos, title, footer, alt, labels }: {
     <section className={`mosaic is-${phase}`}>
       <h1 className="sr-only">{title}</h1>
 
-      <div
-        ref={track}
-        className="mosaic-track"
-        tabIndex={0}
-        aria-label={labels.strip}
-        style={{ '--ar0': photos[0].w / photos[0].h, '--arN': photos[n - 1].w / photos[n - 1].h } as React.CSSProperties}
-        // Mouse drag to pan (touch and trackpads scroll natively).
-        onPointerDown={(e) => {
-          if (e.pointerType !== 'mouse') return
-          drag.current = { x: e.clientX, left: track.current!.scrollLeft, moved: false, on: true }
-          track.current!.classList.add('is-dragging')
-        }}
-        onPointerMove={(e) => {
-          const d = drag.current
-          if (!d.on) return
-          if (Math.abs(e.clientX - d.x) > 4) d.moved = true
-          track.current!.scrollLeft = d.left - (e.clientX - d.x)
-        }}
-        onDragStart={(e) => e.preventDefault()}
-        onPointerUp={endDrag}
-        onPointerLeave={endDrag}
-      >
-        {photos.map((p, i) => (
-          <figure
-            key={p.id}
-            data-i={i}
-            className={`slide${i === active ? ' is-on' : ''}`}
-            style={{ '--ar': p.w / p.h, '--i': i } as React.CSSProperties}
-            onClick={() => !drag.current.moved && i !== active && center(i)}
-          >
-            <Photo p={p} alt={alt} sizes="(min-width: 768px) 62vw, 88vw" priority={i === 0} />
-          </figure>
-        ))}
-      </div>
-
-      <div className="mosaic-foot">
-        {footer}
-        <div className="mosaic-arrows">
-          <button type="button" className="glass" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>←</button>
-          <button type="button" className="glass" onClick={() => center(active + 1)} disabled={active === n - 1} aria-label={labels.next}>→</button>
+      {phase === 'done' ? (
+        // Grid layout after animation
+        <div className="mosaic-grid">
+          {photos.map((p, i) => (
+            <figure key={p.id} className="mosaic-grid-item" style={{ '--ar': p.w / p.h } as React.CSSProperties}>
+              <Photo p={p} alt={alt} sizes="(min-width: 768px) 40vw, 90vw" priority={i === 0} />
+            </figure>
+          ))}
         </div>
-      </div>
+      ) : (
+        // Filmstrip during animation
+        <div
+          ref={track}
+          className="mosaic-track"
+          tabIndex={0}
+          aria-label={labels.strip}
+          style={{ '--ar0': photos[0].w / photos[0].h, '--arN': photos[n - 1].w / photos[n - 1].h } as React.CSSProperties}
+          onPointerDown={(e) => {
+            if (e.pointerType !== 'mouse') return
+            drag.current = { x: e.clientX, left: track.current!.scrollLeft, moved: false, on: true }
+            track.current!.classList.add('is-dragging')
+          }}
+          onPointerMove={(e) => {
+            const d = drag.current
+            if (!d.on) return
+            if (Math.abs(e.clientX - d.x) > 4) d.moved = true
+            track.current!.scrollLeft = d.left - (e.clientX - d.x)
+          }}
+          onDragStart={(e) => e.preventDefault()}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
+        >
+          {photos.map((p, i) => (
+            <figure
+              key={p.id}
+              data-i={i}
+              className={`slide${i === active ? ' is-on' : ''}`}
+              style={{ '--ar': p.w / p.h, '--i': i } as React.CSSProperties}
+              onClick={() => !drag.current.moved && i !== active && center(i)}
+            >
+              <Photo p={p} alt={alt} sizes="(min-width: 768px) 62vw, 88vw" priority={i === 0} />
+            </figure>
+          ))}
+        </div>
+      )}
+
+      {phase === 'pending' || phase === 'intro' || phase === 'settling' ? (
+        <div className="mosaic-foot">
+          {footer}
+          <div className="mosaic-arrows">
+            <button type="button" className="glass" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>←</button>
+            <button type="button" className="glass" onClick={() => center(active + 1)} disabled={active === n - 1} aria-label={labels.next}>→</button>
+          </div>
+        </div>
+      ) : null}
 
       {playing && (
         <div ref={deal} className="deal" aria-hidden>

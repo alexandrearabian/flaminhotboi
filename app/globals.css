@@ -232,6 +232,25 @@ body::after {
 .mosaic-arrows button:active:not(:disabled) { transform: scale(0.94); }
 .mosaic-arrows button:disabled { opacity: 0.3; cursor: default; }
 
+/* Mosaic grid (done phase) */
+.mosaic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+  padding: clamp(2rem, 5vh, 3rem) var(--gutter);
+  animation: grid-in 0.9s var(--ease-soft) 0.3s both;
+}
+@keyframes grid-in { from { opacity: 0; translate: 0 2rem; } }
+.mosaic-grid-item {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.4s var(--ease);
+}
+.mosaic-grid-item:hover {
+  opacity: 1;
+}
+.mosaic-grid-item img { width: 100%; height: auto; display: block; }
+
 /* Phases: pending (server HTML) -> intro (dealing) -> settling (pull back) -> done. */
 .mosaic.is-pending > :not(.deal) { opacity: 0; animation: failsafe 0.01s 4s forwards; } /* if JS never runs */
 @keyframes failsafe { to { opacity: 1; } }
