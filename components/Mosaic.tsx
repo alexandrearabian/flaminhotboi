@@ -104,7 +104,8 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     events.forEach((e) => addEventListener(e, skip, { once: true, passive: true }))
 
     const run = async () => {
-      const r = rowRefs.current[0]!.querySelector<HTMLElement>('[data-hero]')!.getBoundingClientRect()
+      const heroTile = () => rowRefs.current[0]!.querySelector<HTMLElement>('[data-hero]')!
+      const r = heroTile().getBoundingClientRect()
       const img = hero.current!
       Object.assign(img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
       const dx = innerWidth / 2 - (r.left + r.width / 2)
@@ -134,8 +135,13 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       await wait(350)
       if (cancelled) return
 
+      // Aim the landing at where the tile is now, not where it was when the intro began: anything
+      // that shifted the layout since (fonts, styles, the switch to phone rows) would otherwise
+      // land the hero beside its tile.
+      const now = heroTile().getBoundingClientRect()
+      const land = T(now.left + now.width / 2 - (r.left + r.width / 2), now.top + now.height / 2 - (r.top + r.height / 2), now.width / r.width)
       setPhase('settling')
-      const settle = img.animate([{ transform: T(dx, dy, sCover) }, { transform: 'none' }],
+      const settle = img.animate([{ transform: T(dx, dy, sCover) }, { transform: land }],
         { duration: 1150, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       // The curve has a long tail: by now the hero looks landed, so the rows start sliding in
       // around it while it finishes; the overlay goes once it's exactly in place.
