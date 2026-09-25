@@ -72,9 +72,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     rowRefs.current.forEach((el, k) => {
       if (!el) return
       const W = period(el)
-      if (saved?.length === n) pos.current[k] = W + saved[k]
+      // Restored positions land in the same range the drift keeps to (copies look identical, but
+      // the intro's hero has to find its tile on screen, not a whole copy away).
+      if (saved?.length === n) pos.current[k] = W + saved[k] > W * 1.5 ? saved[k] : W + saved[k]
       else if (k === 0) {
-        const h = el.querySelector<HTMLElement>('[data-hero]')!
+        const h = el.querySelectorAll<HTMLElement>('[data-hero]')[1] // the middle copy's
         pos.current[k] = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
       } else {
         // The lower rows start staggered, like bricks, so their gaps don't line up.
@@ -104,7 +106,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     events.forEach((e) => addEventListener(e, skip, { once: true, passive: true }))
 
     const run = async () => {
-      const heroTile = () => rowRefs.current[0]!.querySelector<HTMLElement>('[data-hero]')!
+      // Whichever copy of the hero's tile is nearest the middle of the screen.
+      const heroTile = () => [...rowRefs.current[0]!.querySelectorAll<HTMLElement>('[data-hero]')].reduce((a, b) => {
+        const mid = (f: HTMLElement) => { const q = f.getBoundingClientRect(); return Math.abs(q.left + q.width / 2 - innerWidth / 2) }
+        return mid(b) < mid(a) ? b : a
+      })
       const r = heroTile().getBoundingClientRect()
       const img = hero.current!
       Object.assign(img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
@@ -232,7 +238,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
               <figure
                 key={`${c}-${p.id}`}
                 data-i={i}
-                data-hero={c === 1 && i === 0 ? '' : undefined}
+                data-hero={i === 0 ? '' : undefined}
                 style={{ '--ar': p.w / p.h, '--j': j } as React.CSSProperties}
                 aria-hidden={c !== 1 || undefined}
                 tabIndex={c === 1 ? 0 : -1}
