@@ -11,26 +11,33 @@ const T = (dx: number, dy: number, s: number) => `translate(${dx}px, ${dy}px) sc
 // Scattered like prints tossed on a table: fixed per index so it's the same on every visit.
 const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${((i * 53) % 13) - 6}vw`, '--y': `${((i * 29) % 9) - 4}vh` })
 
-// Where each print rests on the table (desktop), hand-placed so the spread is loose but balanced:
-// [center x in % of the table, center y in svh, width in vw, rotation in deg]. 0 is the hero.
-const SLOTS = [
-  [50, 34, 34, 0], [14, 15, 19, -5], [85, 19, 18, 4], [20, 52, 17, 3],
-  [80, 54, 22, -3], [38, 72, 19, -6], [63, 80, 21, 5], [11, 88, 18, -2],
-  [90, 90, 15, 7], [30, 106, 22, 2], [56, 110, 16, -4], [80, 112, 20, 3],
-]
+// The table: an even grid of small prints, each set down a little off-true, around the hero.
+// Desktop: 6 columns, the hero taking the middle two of the top two rows. Phones: 3 columns, the
+// hero across the top two. Row heights in svh; x in % of the table, y in svh, width in vw.
+const DESK = { cols: 6, row: 24, hero: (c: number, r: number) => r < 2 && (c === 2 || c === 3) }
+const PHONE = { cols: 3, row: 19, hero: (_: number, r: number) => r < 2 }
 // Integer hash in [0, 1]: identical on server and client, so hydration never disagrees.
 const rnd = (i: number, k: number) => ((i * (37 + k * 14) + k * 11) % 17) / 16
-// Phones get a loose zig-zag instead, one print per step down the page.
-const slot = (i: number) => {
-  const [x, y, w, r] = SLOTS[i % SLOTS.length]
-  return {
-    '--x': x, '--y': y + 110 * Math.floor(i / SLOTS.length), '--w': w, '--r': r,
-    '--xm': i ? (i % 2 ? 33 : 67) + Math.round((rnd(i, 1) - 0.5) * 6) : 50,
-    '--ym': 15 + i * 22 + (i ? Math.round((rnd(i, 2) - 0.5) * 6) : 0),
-    '--wm': i ? 50 + Math.round(rnd(i, 3) * 12) : 84,
-    '--rm': i ? Math.round((rnd(i, 4) - 0.5) * 8) : 0,
+const round1 = (v: number) => Math.round(v * 10) / 10
+// Grid cell of the k-th print after the hero, skipping the cells the hero covers.
+const cell = (k: number, g: typeof DESK) => {
+  for (let n = 0, at = 0; ; at++) {
+    const c = at % g.cols, r = Math.floor(at / g.cols)
+    if (!g.hero(c, r) && n++ === k) return { c, r }
   }
 }
+const slot = (i: number) => {
+  if (i === 0) return { '--x': 50, '--y': DESK.row, '--w': 26, '--r': 0, '--xm': 50, '--ym': PHONE.row, '--wm': 84, '--rm': 0 }
+  const d = cell(i - 1, DESK), m = cell(i - 1, PHONE)
+  const jig = (k: number, amount: number) => round1((rnd(i, k) - 0.5) * amount)
+  return {
+    '--x': round1(((d.c + 0.5) / DESK.cols) * 100) + jig(1, 3), '--y': (d.r + 0.5) * DESK.row + jig(2, 4),
+    '--w': round1(11.5 + rnd(i, 3) * 2.5), '--r': jig(4, 6),
+    '--xm': round1(((m.c + 0.5) / PHONE.cols) * 100) + jig(5, 4), '--ym': (m.r + 0.5) * PHONE.row + jig(6, 3),
+    '--wm': round1(25 + rnd(i, 7) * 3), '--rm': jig(8, 6),
+  }
+}
+const DEALT = 14 // prints flicked onto the screen in the intro; the rest just join the spread
 
 // Once per page load: coming back from a set page goes straight to the table.
 let introPlayed = false
@@ -177,8 +184,8 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
         role="group"
         aria-label={label}
         style={{
-          '--h': Math.max(...photos.map((_, i) => slot(i)['--y'])) + 26,
-          '--hm': slot(n - 1)['--ym'] + 28,
+          '--h': Math.max(...photos.map((_, i) => slot(i)['--y'])) + DESK.row * 0.7,
+          '--hm': Math.max(...photos.map((_, i) => slot(i)['--ym'])) + PHONE.row * 0.7,
           '--x0': s0['--x'], '--y0': s0['--y'], '--xm0': s0['--xm'], '--ym0': s0['--ym'],
         } as React.CSSProperties}
       >
@@ -193,7 +200,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
             onPointerDown={(e) => grab(e, i)}
             onDragStart={(e) => e.preventDefault()}
           >
-            <Photo p={p} alt={alt} sizes={i ? '(min-width: 768px) 24vw, 68vw' : '(min-width: 768px) 36vw, 86vw'} priority={i === 0} />
+            <Photo p={p} alt={alt} sizes={i ? '(min-width: 768px) 15vw, 30vw' : '(min-width: 768px) 28vw, 86vw'} priority={i === 0} />
           </figure>
         ))}
       </div>
@@ -203,7 +210,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
 
       {dealing && (
         <div ref={deal} className="deal" aria-hidden>
-          {photos.slice(1).map((p, i) => (
+          {photos.slice(1, DEALT + 1).map((p, i) => (
             <img key={p.id} className="print" src={`/photos/${p.id}/${p.widths[0]}.webp`} alt="" style={{ ...scatter(i), '--ar': p.w / p.h } as React.CSSProperties} />
           ))}
           <div className="deal-flash" />

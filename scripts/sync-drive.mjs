@@ -14,7 +14,7 @@ const OUT = 'public/photos'
 const IMAGE_EXT = /\.(jpe?g|png|tiff?|webp)$/i
 const FEATURED = /^mosaico principal$/i // this folder feeds the home page's opening reel, not a set
 const DESIGN = /^music design$/i // design work: its own page, not a concert
-const FEATURED_COUNT = 12 // first N photos by filename; ponytail: raise it or make the reel faster if they want more
+const FEATURED_COUNT = 48 // first N photos by filename; the home table grows a row per 6 (3 on phones)
 
 // "03 Fer Moreno", "03-Fer Moreno", "03. 2026-03-14 — Artist — Venue": a leading number of up to
 // three digits only sets the order (01 first) and never shows on the site. A date is not a number.

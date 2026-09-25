@@ -146,11 +146,10 @@ body::after {
   border-radius: 50%;
   background: rgb(255 255 255 / 0.14);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
-  transition: transform 0.5s var(--ease), background 0.4s var(--ease);
+  transition: background 0.4s var(--ease);
 }
 .cta:hover, .set-link:hover .cta { background-color: color-mix(in oklab, var(--gel) 42%, rgb(16 14 14 / 0.38)); box-shadow: 0 14px 44px -12px color-mix(in oklab, var(--gel) 75%, transparent), 0 2px 6px -2px rgb(0 0 0 / 0.4); }
 .cta:hover .cta-icon, .set-link:hover .cta-icon { background: rgb(255 255 255 / 0.22); }
-.cta:hover .cta-icon, .set-link:hover .cta-icon { transform: translateX(3px) scale(1.06); }
 .cta:active { transform: scale(0.98); }
 .cta-lg { padding: 0.55rem 0.55rem 0.55rem 1.75rem; font-size: 0.875rem; }
 .cta-lg .cta-icon { width: 2.75rem; height: 2.75rem; }
@@ -170,7 +169,7 @@ body::after {
 }
 .pic {
   --px: var(--x); --py: var(--y); --pw: var(--w); --pr: var(--r);
-  --hmax: 34svh;
+  --hmax: 22svh;
   position: absolute;
   left: calc(var(--px) * 1%);
   top: calc(var(--py) * 1svh);
@@ -180,12 +179,12 @@ body::after {
   cursor: grab;
   box-shadow: 0 30px 70px -28px rgb(0 0 0 / 0.95);
 }
-.pic:first-child { --hmax: 48svh; z-index: 1; }
+.pic:first-child { --hmax: 42svh; z-index: 1; }
 .pic.is-held { cursor: grabbing; scale: 1.035; box-shadow: 0 60px 110px -35px #000; }
 .is-done .pic {
   transition:
-    translate 0.7s var(--ease) calc(var(--i) * 25ms),
-    opacity 0.35s var(--ease-soft) calc(var(--i) * 25ms),
+    translate 0.7s var(--ease) calc(min(var(--i), 20) * 22ms),
+    opacity 0.35s var(--ease-soft) calc(min(var(--i), 20) * 22ms),
     scale 0.35s var(--ease),
     box-shadow 0.35s var(--ease);
 }
@@ -633,8 +632,8 @@ html:has(.lightbox[open]) { overflow: hidden; }
 
   .mosaic { padding-top: 6rem; } /* the nav may take two lines here */
   .spread { --gx: var(--xm0); --gy: var(--ym0); height: calc(var(--hm) * 1svh); }
-  .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 42svh; }
-  .pic:first-child { --hmax: 52svh; }
+  .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 16svh; }
+  .pic:first-child { --hmax: 34svh; }
   .mosaic-foot { align-items: center; }
   .hgal { --cap: 76vw; } /* leaves the neighbors room to show */
   .crate { --sh: 52svh; grid-template-columns: 1fr; gap: 1rem; }
