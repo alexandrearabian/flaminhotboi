@@ -14,6 +14,7 @@ const OUT = 'public/photos'
 const IMAGE_EXT = /\.(jpe?g|png|tiff?|webp)$/i
 const FEATURED = /^mosaico principal$/i // this folder feeds the home page's opening reel, not a set
 const DESIGN = /^music design$/i // design work: its own page, not a concert
+const ABOUT = /^(sobre m[ií]|about( me)?)$/i // the portrait on the about page: the newest photo in it
 const FEATURED_COUNT = 48 // first N photos by filename; the home table grows a row per 6 (3 on phones)
 
 // "03 Fer Moreno", "03-Fer Moreno", "03. 2026-03-14 — Artist — Venue": a leading number of up to
@@ -175,6 +176,7 @@ async function driveSource(sa, rootId) {
       files: (await list(`'${f.id}' in parents and mimeType contains 'image/'`)).map((file) => ({
         key: `${file.id}-${file.md5Checksum}`,
         name: file.name,
+        created: file.createdTime,
         read: async () => {
           const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, { headers })
           if (!res.ok) throw new Error(`download ${res.status}`)
@@ -196,7 +198,8 @@ async function localSource(dir) {
         files: await Promise.all(
           names.map(async (n) => {
             const buf = await readFile(join(dir, f.name, n))
-            return { key: createHash('md5').update(buf).digest('hex'), name: n, read: async () => buf }
+            const created = (await stat(join(dir, f.name, n))).birthtime.toISOString()
+            return { key: createHash('md5').update(buf).digest('hex'), name: n, created, read: async () => buf }
           }),
         ),
       }
@@ -260,6 +263,7 @@ async function main() {
   const sets = []
   let featured = []
   let design = []
+  let about = null
   const slugs = new Set()
   for (const folder of folders) {
     const files = [...folder.files].sort(byName) // Drive already filtered to images; sharp skips what it can't read
@@ -267,6 +271,12 @@ async function main() {
     if (FEATURED.test(name)) {
       featured = await processAll(folder, files.slice(0, FEATURED_COUNT))
       console.log(`  ${folder.name}: ${featured.length} photos for the home reel`)
+      continue
+    }
+    if (ABOUT.test(name)) {
+      const newest = [...folder.files].sort((a, b) => (b.created ?? '').localeCompare(a.created ?? ''))[0]
+      about = newest ? (await processAll(folder, [newest]))[0] ?? null : null
+      console.log(`  ${folder.name}: ${about ? `"${newest.name}"` : 'no photo'} for the about page`)
       continue
     }
     if (DESIGN.test(name)) {
@@ -291,10 +301,10 @@ async function main() {
   // Rebuild public/photos from cache so deleted photos disappear from the site.
   // ponytail: cache dir is never pruned; clear .next/cache/drive if it ever gets big.
   await rm(OUT, { recursive: true, force: true })
-  for (const p of [...featured, ...design, ...sets.flatMap((s) => s.photos)])
+  for (const p of [...featured, ...design, ...(about ? [about] : []), ...sets.flatMap((s) => s.photos)])
     await cp(join(CACHE, p.id), join(OUT, p.id), { recursive: true, filter: (src) => !src.endsWith('meta.json') })
   await mkdir('data', { recursive: true })
-  await writeFile('data/sets.json', JSON.stringify({ featured, design, sets }, null, 1))
+  await writeFile('data/sets.json', JSON.stringify({ featured, design, about, sets }, null, 1))
   console.log(`✓ ${sets.length} sets synced`)
 }
 

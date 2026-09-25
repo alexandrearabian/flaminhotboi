@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { ViewTransition } from 'react'
 import { Photo } from '@/components/Photo'
 import { site, t, type Lang } from '@/lib/i18n'
-import { featured } from '@/lib/sets'
+import { about, featured } from '@/lib/sets'
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   return { title: t[(await params).lang as Lang].about }
@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 // Contact lives in the footer, right below.
 export default async function About({ params }: { params: Promise<{ lang: string }> }) {
   const tr = t[(await params).lang as Lang]
-  const shot = featured[1] ?? featured[0]
+  const shot = about ?? featured[1] ?? featured[0] // a home photo until "SOBRE MI" has one
   return (
     <ViewTransition
       enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
