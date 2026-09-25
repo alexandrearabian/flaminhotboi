@@ -8,15 +8,8 @@ import { isLang, langs, site, t } from '@/lib/i18n'
 import { design, featured } from '@/lib/sets'
 import '../globals.css'
 
-// Self-hosted (OFL, latin subset from Google Fonts) so builds don't depend on fonts.googleapis.com.
-const display = localFont({ src: '../fonts/LeagueGothic.woff2', variable: '--font-display' })
-const mono = localFont({
-  src: [
-    { path: '../fonts/IBMPlexMono-400.woff2', weight: '400' },
-    { path: '../fonts/IBMPlexMono-500.woff2', weight: '500' },
-  ],
-  variable: '--font-mono',
-})
+// Display only. Body copy stays on the system mono in globals.css.
+const display = localFont({ src: '../../fonts/Parafina-RegularL.otf', variable: '--font-display' })
 
 export const dynamicParams = false
 export const generateStaticParams = () => langs.map((lang) => ({ lang }))
@@ -40,7 +33,7 @@ export default async function Layout({ children, params }: { children: React.Rea
   const { lang } = await params
   if (!isLang(lang)) notFound()
   return (
-    <html lang={lang} className={`${display.variable} ${mono.variable}`} style={{ '--gel': featured[0]?.gel } as React.CSSProperties}>
+    <html lang={lang} className={display.variable} style={{ '--gel': featured[0]?.gel } as React.CSSProperties}>
       <body>
         <a href="#main" className="skip">Skip to content</a>
         <Atmosphere />

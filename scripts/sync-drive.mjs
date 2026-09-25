@@ -207,7 +207,10 @@ async function processPhoto(file) {
 }
 
 async function main() {
-  try { process.loadEnvFile('.env.local') } catch {}
+  // .env.local wins: loadEnvFile does not override variables that are already set.
+  for (const file of ['.env.local', '.env']) {
+    try { process.loadEnvFile(file) } catch {}
+  }
   const sa = loadServiceAccount()
   const rootId = process.env.DRIVE_ROOT_FOLDER_ID
   let folders
@@ -218,7 +221,7 @@ async function main() {
   } else if (process.env.VERCEL) {
     throw new Error('GOOGLE_SA_JSON and DRIVE_ROOT_FOLDER_ID must be set on Vercel.')
   } else {
-    console.log('Using ./fixtures (no Drive credentials in .env.local, or --local)')
+    console.log('Using ./fixtures (no Drive credentials in .env, or --local)')
     folders = existsSync('fixtures') ? await localSource('fixtures') : []
   }
 

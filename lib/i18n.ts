@@ -3,11 +3,11 @@
 import type { Set } from '@/lib/sets'
 
 export const site = {
-  name: 'flaminhotboi',
-  navName: 'flamin', // short form in the nav pill
+  name: 'Ramiro Daneloglu',
+  navName: 'Rami', // short form in the nav pill
   email: 'hello@example.com',
   // Shown in the footer in this order. Add TikTok, YouTube, WhatsApp (https://wa.me/<number>)… as needed.
-  socials: [{ label: 'Instagram', href: 'https://instagram.com/' }],
+  socials: [{ label: 'Instagram', href: 'https://www.instagram.com/ramidane//' }],
   portrait: '' as string, // e.g. '/portrait.jpg'
 }
 
@@ -17,7 +17,7 @@ export const isLang = (l: string): l is Lang => (langs as readonly string[]).inc
 
 export const t = {
   en: {
-    tagline: 'Jazz, photographed live.',
+    tagline: 'Art.',
     seeSets: 'See the sets',
     setlist: 'Setlist',
     about: 'About',
@@ -44,7 +44,7 @@ export const t = {
     ],
   },
   es: {
-    tagline: 'Jazz, fotografiado en directo.',
+    tagline: 'Arte.',
     seeSets: 'Ver los sets',
     setlist: 'Setlist',
     about: 'Sobre mí',

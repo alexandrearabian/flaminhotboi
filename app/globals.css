@@ -13,6 +13,7 @@
   --dim: #9a948c;
   --accent: color-mix(in oklab, var(--gel), #fff 50%);
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --font-mono: ui-monospace;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
   /* Home filmstrip geometry, shared with the waves: through its middle on desktop, along its
@@ -75,7 +76,7 @@ body::after {
 
 /* ---------- type ---------- */
 .display-xl, .display-l, .set-name {
-  font-family: var(--font-display);
+  font-family: var(--font-display), Palatino, serif;
   line-height: 0.86;
   text-transform: uppercase;
   letter-spacing: 0.005em;
@@ -108,7 +109,7 @@ body::after {
   view-transition-name: nav;
   white-space: nowrap;
 }
-.nav-brand { font: 1.35rem/1 var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; }
+.nav-brand { font: 1.35rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.05em; text-transform: uppercase; }
 .nav nav { display: flex; align-items: center; gap: clamp(0.9rem, 2.5vw, 1.75rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
 .nav nav a { color: var(--dim); transition: color 0.5s var(--ease); }
 .nav nav a:hover { color: var(--ink); }
@@ -406,7 +407,7 @@ body::after {
 .footer-book { display: grid; justify-items: start; gap: 1.5rem; }
 .footer-line { color: var(--dim); max-width: 40ch; }
 .footer-contact { display: grid; justify-items: start; gap: 1.5rem; }
-.footer-email { font: clamp(1.75rem, 3.2vw, 2.75rem)/1.1 var(--font-display); letter-spacing: 0.02em; overflow-wrap: anywhere; transition: color 0.5s var(--ease); }
+.footer-email { font: clamp(1.75rem, 3.2vw, 2.75rem)/1.1 var(--font-display), Palatino, serif; letter-spacing: 0.02em; overflow-wrap: anywhere; transition: color 0.5s var(--ease); }
 .footer-email:hover { color: var(--accent); }
 .footer-social { display: flex; flex-wrap: wrap; gap: 0.75rem 1.75rem; margin: 0; padding: 0; list-style: none; font-size: 0.8125rem; letter-spacing: 0.1em; text-transform: uppercase; }
 .footer-social a { color: var(--dim); transition: color 0.4s var(--ease); }
