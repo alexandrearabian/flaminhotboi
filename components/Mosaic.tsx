@@ -22,6 +22,13 @@ let introPlayed = false
 // ...and each row picks up where it was (offset into its middle copy, in px).
 let saved: number[] | null = null
 
+// Width of one copy of a row: from the first photo of one copy to the first of the next (so it
+// includes the gap between copies, which scrollWidth / 3 would get wrong by a third of a gap).
+const period = (row: HTMLElement) => {
+  const f = row.querySelectorAll<HTMLElement>('figure')
+  return f[f.length / COPIES].offsetLeft - f[0].offsetLeft
+}
+
 // Opening sequence, on every page load: every main photo is dealt onto the screen like a stack
 // of prints, fast; the last one lands, fills the room, then settles into the top row while the
 // three rows slide in. Rows then drift in alternating directions, forever. Swipe, scroll or drag
@@ -46,7 +53,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   useLayoutEffect(() => {
     rowRefs.current.forEach((el, k) => {
       if (!el) return
-      const W = el.scrollWidth / COPIES
+      const W = period(el)
       if (saved) el.scrollLeft = W + saved[k]
       else if (k === 0) {
         const h = el.querySelector<HTMLElement>('[data-hero]')!
@@ -119,18 +126,35 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     return () => { cancelled = true; events.forEach((e) => removeEventListener(e, skip)) }
   }, [playing])
 
-  // The drift. Rows are real scrollers (so swiping, trackpads and momentum are native); this just
-  // nudges each one along every frame unless the visitor has had hold of it in the last moment.
-  // It waits for the intro's hero to finish landing (moving its tile sooner makes the handoff
-  // jump), then eases up to speed.
+  // The drift. Rows are real scrollers, so swiping, trackpads and momentum are native. The drift
+  // itself is a sub-pixel slide of the row's track (scroll positions snap to whole pixels, which
+  // stutters at this speed); every so often, and whenever the visitor takes hold, the slide is
+  // folded into the scroll position in whole pixels, which looks identical. It waits for the
+  // intro's hero to finish landing (moving its tile sooner makes the handoff jump), then eases in.
   useEffect(() => {
     if (phase !== 'done' || dealing) return
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
-    const state = els.map((el) => ({ pos: el.scrollLeft, until: 0 }))
-    const hold = (k: number) => () => (state[k].until = performance.now() + RESUME)
-    // Scrolling that follows a touch (momentum, a mouse drag) keeps the hold; the drift's own doesn't.
-    const follow = (k: number) => () => { if (performance.now() < state[k].until) hold(k)() }
+    const tracks = els.map((el) => el.firstElementChild as HTMLElement)
+    // d: how far the track has slid on top of the scroll position (px, positive = content moved left).
+    const state = els.map(() => ({ d: 0, until: 0 }))
+    const slide = (k: number) => (tracks[k].style.transform = `translate3d(${-state[k].d}px, 0, 0)`)
+    // Fold the slide into the scroll position, keeping that within the middle copy.
+    const fold = (k: number) => {
+      const el = els[k], s = state[k], W = period(el)
+      let target = el.scrollLeft + s.d
+      if (target < W * 0.5) target += W // every copy looks the same, so jumping one is invisible
+      else if (target > W * 1.5) target -= W
+      el.scrollLeft = Math.round(target)
+      s.d = target - el.scrollLeft
+      slide(k)
+    }
+    const hold = (k: number) => () => {
+      if (performance.now() >= state[k].until) fold(k) // hand over exactly what's on screen
+      state[k].until = performance.now() + RESUME
+    }
+    // Scrolling that follows a touch (momentum, a mouse drag) keeps the hold; folding doesn't.
+    const follow = (k: number) => () => { if (performance.now() < state[k].until) state[k].until = performance.now() + RESUME }
     const off = els.flatMap((el, k) => {
       const on = [['pointerdown', hold(k)], ['wheel', hold(k)], ['touchstart', hold(k)], ['scroll', follow(k)]] as const
       on.forEach(([e, f]) => el.addEventListener(e, f, { passive: true }))
@@ -141,34 +165,37 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     const start = last
     const loop = (now: number) => {
       raf = requestAnimationFrame(loop)
-      const ramp = Math.min(1, (now - start) / 1500) ** 2
-      const dt = Math.min(0.05, (now - last) / 1000) * ramp
+      const ease = Math.min(1, (now - start) / 1500)
+      const dt = Math.min(0.05, (now - last) / 1000) * ease * ease
       last = now
-      els.forEach((el, k) => {
+      els.forEach((_, k) => {
         const s = state[k]
-        if (now < s.until) { s.pos = el.scrollLeft; return } // the visitor has it
-        const W = el.scrollWidth / COPIES
-        s.pos += SPEED * dt * (k % 2 ? -1 : 1)
-        if (s.pos < W * 0.5) s.pos += W // every copy looks the same, so jumping a whole copy is invisible
-        else if (s.pos > W * 1.5) s.pos -= W
-        el.scrollLeft = s.pos
+        if (now < s.until) return // the visitor has it
+        s.d += SPEED * dt * (k % 2 ? -1 : 1)
+        if (Math.abs(s.d) > 48) fold(k)
+        else slide(k)
       })
     }
     if (!still) raf = requestAnimationFrame(loop)
 
-    // The photo passing the middle of the middle row tints the room.
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
-    }, { root: els[1] ?? null, rootMargin: '0px -49.5% 0px -49.5%' })
-    els[1]?.querySelectorAll('figure').forEach((f) => io.observe(f))
-
     return () => {
       cancelAnimationFrame(raf)
-      io.disconnect()
       off.forEach((f) => f())
-      saved = els.map((el) => { const W = el.scrollWidth / COPIES; return (((el.scrollLeft - W) % W) + W) % W })
+      saved = els.map((el, k) => { const W = period(el); return (((el.scrollLeft + state[k].d - W) % W) + W) % W })
     }
   }, [phase, dealing, photos])
+
+  // The photo passing the middle of the middle row tints the room. Set up on mount, so its first
+  // recolor (which restyles the page) isn't at the same moment the drift starts.
+  useEffect(() => {
+    const row = rowRefs.current[1]
+    if (!row) return
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
+    }, { root: row, rootMargin: '0px -49.5% 0px -49.5%' })
+    row.querySelectorAll('figure').forEach((f) => io.observe(f))
+    return () => io.disconnect()
+  }, [photos])
 
   // Mouse: drag a row sideways (touch and trackpads scroll it natively).
   const drag = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -204,6 +231,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
           onPointerDown={drag}
           onDragStart={(e) => e.preventDefault()}
         >
+          <div className="mtrack">
           {Array.from({ length: COPIES }, (_, c) =>
             row.map(({ p, i }, j) => (
               <figure
@@ -220,6 +248,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
               </figure>
             )),
           )}
+          </div>
         </div>
       ))}
       <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />

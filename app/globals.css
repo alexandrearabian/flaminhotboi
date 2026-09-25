@@ -181,6 +181,7 @@ body::after {
   gap: clamp(1rem, 2.2vw, 2rem);
 }
 .mrow::-webkit-scrollbar { display: none; }
+.mtrack { flex: none; display: flex; gap: inherit; height: 100%; will-change: transform; }
 .mrow.is-dragging { cursor: grabbing; }
 .mrow figure { flex: none; height: 100%; aspect-ratio: var(--ar); cursor: zoom-in; }
 .mrow.is-dragging figure { cursor: grabbing; }
