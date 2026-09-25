@@ -152,7 +152,9 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       const now = heroTile().getBoundingClientRect()
       const land = T(now.left + now.width / 2 - (r.left + r.width / 2), now.top + now.height / 2 - (r.top + r.height / 2), now.width / r.width)
       setPhase('settling')
-      const settle = img.animate([{ transform: T(dx, dy, sCover) }, { transform: land }],
+      // The print's shadow fades as it settles: its tile has none, and the swap would drop it at once.
+      const shade = getComputedStyle(img).boxShadow
+      const settle = img.animate([{ transform: T(dx, dy, sCover), boxShadow: shade }, { transform: land, boxShadow: shade.replace(/rgba?\([^)]*\)/, 'rgba(0, 0, 0, 0)') }],
         { duration: 1150, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       // The curve has a long tail: by now the hero looks landed, so the rows start sliding in
       // around it while it finishes; the overlay goes once it's exactly in place.

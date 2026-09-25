@@ -276,8 +276,13 @@ body::after {
 .is-flip .stack-peek:nth-child(3) { --tx: 8%; --rot: 4deg; }
 
 .set-info { display: grid; justify-items: start; gap: 0.85rem; padding-bottom: 0.5rem; }
-.set-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--accent); }
-.set-name { font-size: clamp(2.25rem, 4.2vw, 4.25rem); transition: color 0.6s var(--ease); }
+/* Number and name on one line, their text starting where the button's label does (the pill's
+   inner padding), and the name in the title face but not capitals, so it reads as an item under
+   the big WORK heading rather than a second heading. */
+.set-title, .set-details { padding-left: 1.4rem; }
+.set-title { display: flex; align-items: baseline; gap: 0.9rem; }
+.set-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--accent); font-variant-numeric: tabular-nums; }
+.set-name { font-size: clamp(1.9rem, 3vw, 3rem); line-height: 1; text-transform: none; letter-spacing: 0.01em; transition: color 0.6s var(--ease); }
 .set-link:hover .set-name { color: var(--accent); }
 .set-details { font-size: 0.8125rem; color: var(--dim); white-space: pre-wrap; }
 .set-info .cta { margin-top: 0.5rem; }
@@ -338,7 +343,7 @@ body::after {
   display: flex;
   align-items: center;
   gap: clamp(0.75rem, 2vw, 2rem);
-  height: calc(var(--gh) + 3rem);
+  padding-block: 1.5rem; /* room for the shadow; the height is the photos' own, no empty bands */
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -568,10 +573,14 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .is-flip .stack { order: 0; }
   .stack { width: min(calc(46svh * var(--ar)), 84%); } /* room for the fanned prints either side */
   .set-info { gap: 0.6rem; padding-bottom: 0; }
-  .set-name { font-size: 2.25rem; }
+  .set-name { font-size: 1.9rem; }
   .set-info .cta { margin-top: 0.4rem; }
-  .set-intro h1 { margin-bottom: 0.75rem; }
-  .hgal { --gh: 52svh; --cap: 76vw; } /* leaves the neighbors room to show */
+  .set-intro { padding-bottom: 0.25rem; }
+  .set-intro h1 { margin-bottom: 0.6rem; }
+  .hgal { --gh: 52svh; --cap: 76vw; padding-bottom: 2.5rem; } /* leaves the neighbors room to show */
+  .hgal-track { padding-block: 1.25rem; }
+  .hgal-controls { margin-top: 0; }
+  .sets-next .set-block { padding-top: 1rem; }
 
 
   .footer { grid-template-columns: 1fr; align-items: start; }
