@@ -26,7 +26,10 @@ const cell = (k: number, g: typeof DESK) => {
     if (!g.hero(c, r) && n++ === k) return { c, r }
   }
 }
-const slot = (i: number) => {
+// Once spread, each print drifts in its own slow little circle: radius in px, one lap in s.
+const orbit = (i: number) => ({ '--or': round1(3 + rnd(i, 9) * 3), '--od': round1(11 + rnd(i, 10) * 7) })
+const slot = (i: number) => ({ ...place(i), ...orbit(i) })
+const place = (i: number) => {
   if (i === 0) return { '--x': 50, '--y': DESK.row, '--w': 26, '--r': 0, '--xm': 50, '--ym': PHONE.row, '--wm': 84, '--rm': 0 }
   const d = cell(i - 1, DESK), m = cell(i - 1, PHONE)
   const jig = (k: number, amount: number) => round1((rnd(i, k) - 0.5) * amount)
