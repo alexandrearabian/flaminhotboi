@@ -1,0 +1,11 @@
+# Rebuilds the site daily so new Drive photos go live without anyone pushing code.
+name: Daily rebuild
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -fsS -X POST "${{ secrets.DEPLOY_HOOK }}"

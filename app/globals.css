@@ -1,0 +1,466 @@
+/* Dark-only on purpose: these photos are shot in dark rooms and only read on near-black. */
+
+/* The stage-gel color of the photo on screen. Registered so the whole page can fade between colors. */
+@property --gel {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2230c3;
+}
+
+:root {
+  --bg: #0a0909;
+  --ink: #ece7df;
+  --dim: #9a948c;
+  --accent: color-mix(in oklab, var(--gel), #fff 50%);
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
+  /* Home filmstrip geometry, shared with the waves: through its middle on desktop, along its
+     bottom edge on mobile. */
+  --slide-top: 7rem;
+  --slide-h: min(62dvh, 46rem);
+  --wave-y: calc(var(--slide-top) + var(--slide-h) / 2);
+  --wave-h: 44vh;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, main, footer { overflow-x: clip; } /* stacks and rotated prints must never widen the page */
+html {
+  scroll-behavior: smooth; /* in-page links only; wheel and touch scrolling stay native */
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font: 400 0.9375rem/1.65 var(--font-mono), ui-monospace, monospace;
+  overflow-x: clip;
+}
+a { color: inherit; text-decoration: none; }
+a, button { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 1px solid var(--accent); outline-offset: 4px; }
+::selection { background: var(--gel); color: #fff; }
+h1, h2, h3, p, figure { margin: 0; font-weight: 400; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+/* Layers, back to front: room light (-2), waves (-1), content, intro deal (15), nav (20), grain (30).
+   Both canvases fade their own color (components/Atmosphere.tsx). */
+.glow { position: fixed; inset: 0; z-index: -2; width: 100%; height: 100%; pointer-events: none; }
+.waves {
+  position: fixed;
+  left: 0;
+  top: var(--wave-y);
+  z-index: -1;
+  width: 100%;
+  height: var(--wave-h);
+  translate: 0 -50%;
+  pointer-events: none;
+}
+/* The one foreground effect: a faint, static film grain (no blend mode, no animation: both would
+   force the whole screen to recomposite every frame). */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: var(--gutter); top: 0.5rem; z-index: 40; background: var(--bg); padding: 0.5rem 1rem; }
+
+/* ---------- type ---------- */
+.display-xl, .display-l, .set-name {
+  font-family: var(--font-display);
+  line-height: 0.86;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.display-xl { font-size: clamp(3.5rem, 10vw, 10rem); }
+.display-l { font-size: clamp(2.25rem, 5vw, 4.75rem); }
+
+/* ---------- photo ---------- */
+.photo { display: block; background: center / contain no-repeat; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: contain; -webkit-user-drag: none; user-select: none; }
+
+/* ---------- nav: floating glass pill ---------- */
+.nav {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 0.45rem 0.45rem 0.45rem 1.25rem;
+  border-radius: 999px;
+  background: rgb(14 12 12 / 0.42);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 10px 40px -12px color-mix(in oklab, var(--gel) 40%, transparent);
+  view-transition-name: nav;
+  white-space: nowrap;
+}
+.nav-brand { font: 1.35rem/1 var(--font-display); letter-spacing: 0.05em; text-transform: uppercase; }
+.nav nav { display: flex; align-items: center; gap: clamp(0.9rem, 2.5vw, 1.75rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.nav nav a { color: var(--dim); transition: color 0.5s var(--ease); }
+.nav nav a:hover { color: var(--ink); }
+.nav nav .nav-lang { padding: 0.45rem 0.8rem; border-radius: 999px; background: rgb(255 255 255 / 0.07); color: var(--ink); }
+
+/* ---------- pill CTA with nested icon ---------- */
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.4rem 0.4rem 0.4rem 1.4rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--gel) 30%, rgb(255 255 255 / 0.06));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  transition: background 0.6s var(--ease), transform 0.2s var(--ease);
+}
+.cta-count { color: color-mix(in oklab, var(--ink) 70%, transparent); font-size: 0.75rem; letter-spacing: 0.06em; }
+.cta-icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.1);
+  transition: transform 0.6s var(--ease);
+}
+.cta:hover, .set-link:hover .cta { background: color-mix(in oklab, var(--gel) 60%, rgb(255 255 255 / 0.06)); }
+.cta:hover .cta-icon, .set-link:hover .cta-icon { transform: translateX(3px) scale(1.06); }
+.cta:active { transform: scale(0.98); }
+.cta-lg { padding: 0.55rem 0.55rem 0.55rem 1.75rem; font-size: 0.875rem; }
+.cta-lg .cta-icon { width: 2.75rem; height: 2.75rem; }
+
+/* ---------- mosaic: the opening and the filmstrip ---------- */
+.mosaic {
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--slide-h) 1fr;
+  height: 100dvh;
+  min-height: 34rem;
+  padding: var(--slide-top) 0 clamp(1rem, 3vh, 2rem);
+}
+.mosaic-track {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(1rem, 2.5vw, 2.5rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  padding-inline:
+    calc(50vw - min(var(--slide-h) * var(--ar0), 84vw) / 2)
+    calc(50vw - min(var(--slide-h) * var(--arN), 84vw) / 2);
+  cursor: grab;
+  outline-offset: -4px;
+}
+.mosaic-track::-webkit-scrollbar { display: none; }
+.mosaic-track.is-dragging { scroll-snap-type: none; cursor: grabbing; }
+.slide {
+  flex: none;
+  width: min(calc(var(--slide-h) * var(--ar)), 84vw);
+  scroll-snap-align: center;
+  transform: scale(0.84);
+  transition:
+    transform 0.6s var(--ease),
+    opacity 0.9s var(--ease) calc(var(--i) * 70ms + 150ms),
+    translate 1.3s var(--ease) calc(var(--i) * 70ms + 150ms);
+  cursor: pointer;
+}
+.slide.is-on { transform: none; cursor: inherit; }
+.mosaic-foot {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-inline: var(--gutter);
+  transition: opacity 0.9s var(--ease) 0.6s, translate 0.9s var(--ease) 0.6s;
+}
+.mosaic-lede { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
+.mosaic-lede p { color: var(--dim); }
+.mosaic-arrows { display: flex; gap: 0.5rem; }
+.mosaic-arrows button {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  transition: background 0.5s var(--ease), opacity 0.4s var(--ease), transform 0.2s var(--ease);
+}
+.mosaic-arrows button:hover:not(:disabled) { background: color-mix(in oklab, var(--gel) 55%, rgb(255 255 255 / 0.06)); }
+.mosaic-arrows button:active:not(:disabled) { transform: scale(0.94); }
+.mosaic-arrows button:disabled { opacity: 0.3; cursor: default; }
+
+/* Phases: pending (server HTML) -> intro (dealing) -> settling (pull back) -> done. */
+.mosaic.is-pending > :not(.deal) { opacity: 0; animation: failsafe 0.01s 4s forwards; } /* if JS never runs */
+@keyframes failsafe { to { opacity: 1; } }
+.is-intro .mosaic-foot { opacity: 0; translate: 0 1rem; }
+.is-intro .slide { opacity: 0; translate: 14vw 0; }
+.is-intro .slide:first-child, .is-settling .slide:first-child { opacity: 0; translate: 0 0; }
+.is-done .slide:first-child { transition: transform 0.6s var(--ease); } /* appears exactly where the hero landed */
+
+.deal { position: fixed; inset: 0; z-index: 15; pointer-events: none; }
+.print {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 46dvh;
+  width: auto;
+  max-width: 80vw;
+  aspect-ratio: var(--ar);
+  object-fit: cover;
+  translate: calc(-50% + var(--x)) calc(-50% + var(--y));
+  rotate: var(--r);
+  opacity: 0;
+  scale: 1.18;
+  box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.9);
+  transition: opacity 0.14s var(--ease), scale 0.5s var(--ease);
+}
+.print.is-in { opacity: 1; scale: 1; }
+.deal.is-landing .print:not(.print-hero) { opacity: 0; scale: 0.96; transition: opacity 0.8s var(--ease), scale 1s var(--ease); }
+.print-hero { position: fixed; translate: none; rotate: none; scale: none; max-width: none; object-fit: cover; transform-origin: 50% 50%; transition: none; }
+.deal-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--gel), #fff 45%), transparent 65%);
+}
+.deal.is-landing .deal-flash { animation: flash 0.9s var(--ease-soft); }
+@keyframes flash { 25% { opacity: 0.22; } }
+
+/* ---------- sets: one per screen, cover on a fanned stack ---------- */
+.sets { padding: clamp(6rem, 18vh, 12rem) var(--gutter) 0; }
+.sets-title { margin-bottom: clamp(2rem, 8vh, 6rem); }
+.set-block { padding-block: clamp(4rem, 14vh, 10rem); }
+.set-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
+  align-items: end;
+  gap: clamp(2rem, 6vw, 6rem);
+}
+.is-flip .set-link { grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr); }
+.is-flip .stack { order: 2; }
+.stack {
+  position: relative;
+  isolation: isolate;
+  justify-self: center;
+  width: min(calc(min(72dvh, 46rem) * var(--ar)), 100%);
+}
+.stack-cover {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
+  transition: translate 0.6s var(--ease);
+}
+.stack-peek {
+  --tx: 9%; --ty: -3%; --rot: 4deg;
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  height: 86%;
+  width: auto;
+  max-width: 96%;
+  object-fit: cover;
+  translate: calc(-50% + var(--tx)) calc(-50% + var(--ty));
+  rotate: var(--rot);
+  filter: brightness(0.6);
+  box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
+  transition: translate 0.9s var(--ease), rotate 0.9s var(--ease);
+}
+.stack-peek:nth-child(2) { --tx: 16%; --ty: 2%; --rot: 7deg; }
+.stack-peek:nth-child(3) { --tx: -8%; --ty: 4%; --rot: -4deg; }
+.is-flip .stack-peek:nth-child(1) { --tx: -9%; --rot: -4deg; }
+.is-flip .stack-peek:nth-child(2) { --tx: -16%; --rot: -7deg; }
+.is-flip .stack-peek:nth-child(3) { --tx: 8%; --rot: 4deg; }
+
+.set-info { display: grid; justify-items: start; gap: 1rem; padding-bottom: 0.5rem; }
+.set-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--accent); }
+.set-name { font-size: clamp(2.75rem, 5.5vw, 5.5rem); transition: color 0.6s var(--ease); }
+.set-link:hover .set-name { color: var(--accent); }
+.set-details { font-size: 0.8125rem; color: var(--dim); white-space: pre-wrap; }
+.set-info .cta { margin-top: 0.75rem; }
+.sets-next { padding-top: 0; }
+.empty { color: var(--dim); max-width: 42ch; padding-bottom: 20vh; }
+
+/* ---------- reel: set and design pages ---------- */
+.reel { position: relative; height: calc((var(--n) - 1) * 75dvh + 100dvh); } /* 3/4 screen of scroll per photo */
+.reel-stage { position: sticky; top: 0; height: 100dvh; overflow: hidden; }
+.reel-steps { position: absolute; inset: 0; display: grid; grid-auto-rows: 75dvh; align-content: start; pointer-events: none; }
+.frame {
+  --top: 5.25rem;
+  --bottom: 7.75rem;
+  position: absolute;
+  inset: var(--top) var(--gutter) var(--bottom);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  /* the outgoing photo stays solid until the new one has fully arrived on top of it */
+  transition: opacity 0.3s var(--ease-soft) 0.45s;
+}
+.frame.is-on { z-index: 1; opacity: 1; transition: opacity 0.45s var(--ease-soft); }
+.frame .photo {
+  width: min(100%, calc((100dvh - var(--top) - var(--bottom)) * var(--ar)));
+  translate: 0 2vh;
+  scale: 1.015;
+  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
+  transition: translate 0s 0.8s, scale 0s 0.8s;
+}
+.frame.is-on .photo { translate: 0 0; scale: 1; transition: translate 0.7s var(--ease), scale 0.9s var(--ease); }
+.reel-band {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 0;
+  height: 7.75rem;
+  display: grid;
+  align-items: center;
+}
+.reel-band > * { grid-area: 1 / 1; }
+.reel-intro { display: grid; gap: 0.6rem; transition: opacity 0.4s var(--ease), translate 0.6s var(--ease); }
+.reel-intro.is-gone { opacity: 0; translate: 0 -1rem; pointer-events: none; }
+.intro-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.75rem; font-size: 0.8125rem; color: var(--dim); }
+.back { color: var(--accent); transition: color 0.4s var(--ease); }
+.back:hover { color: var(--ink); }
+.caption {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: pre;
+  color: var(--dim);
+  opacity: 0;
+  translate: 0 0.75rem;
+  transition: opacity 0.3s var(--ease), translate 0.5s var(--ease);
+}
+.caption.is-on { opacity: 1; translate: 0 0; transition-delay: 0.15s; }
+.reel-rail {
+  position: absolute;
+  z-index: 2;
+  right: 0.75rem;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  justify-items: end;
+  gap: clamp(2px, calc(40dvh / var(--n) - 2px), 10px);
+}
+.reel-rail a {
+  display: block;
+  width: 0.9rem;
+  height: 2px;
+  padding-block: 3px;
+  background: rgb(236 231 223 / 0.28) content-box;
+  transition: width 0.7s var(--ease), background-color 0.7s var(--ease);
+}
+.reel-rail a:hover { background-color: rgb(236 231 223 / 0.7); }
+.reel-rail a.is-on { width: 2rem; background-color: var(--accent); }
+
+/* ---------- about ---------- */
+.about {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: end;
+  gap: var(--gutter);
+  min-height: 100dvh;
+  padding: 8rem var(--gutter) 4rem;
+}
+.about-bio { display: grid; gap: 1.25rem; }
+.about-bio h1 { margin-bottom: 1rem; }
+.about-bio p { max-width: 58ch; }
+.about-photo { width: 100%; height: auto; box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95); }
+
+/* ---------- footer: bookings ---------- */
+.footer {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  align-items: end;
+  gap: 3rem var(--gutter);
+  margin-top: clamp(4rem, 12vh, 8rem);
+  padding: clamp(6rem, 18vh, 11rem) var(--gutter) 2rem;
+}
+.footer::before { /* a line of stage light instead of a grey rule */
+  content: '';
+  position: absolute;
+  inset: 0 var(--gutter) auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--gel) 70%, #fff 10%), transparent);
+}
+.footer-book { display: grid; justify-items: start; gap: 1.5rem; }
+.footer-line { color: var(--dim); max-width: 40ch; }
+.footer-contact { display: grid; justify-items: start; gap: 1.5rem; }
+.footer-email { font: clamp(1.75rem, 3.2vw, 2.75rem)/1.1 var(--font-display); letter-spacing: 0.02em; overflow-wrap: anywhere; transition: color 0.5s var(--ease); }
+.footer-email:hover { color: var(--accent); }
+.footer-social { display: flex; flex-wrap: wrap; gap: 0.75rem 1.75rem; margin: 0; padding: 0; list-style: none; font-size: 0.8125rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.footer-social a { color: var(--dim); transition: color 0.4s var(--ease); }
+.footer-social a:hover { color: var(--ink); }
+.footer-base { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 1rem; padding-top: 3rem; font-size: 0.75rem; color: var(--dim); }
+.footer-base a:hover { color: var(--ink); }
+
+/* ---------- set reveal: one-shot, when a set is a third on screen (components/Reveal.tsx) ---------- */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  /* The only scroll animation: the photos behind ease a little way out from under the cover and stay. */
+  .set-block:not(.is-in) .stack-peek { translate: -50% -50%; rotate: 0deg; }
+  .set-block.is-in .stack-peek { transition-delay: calc(var(--k) * 90ms); }
+}
+
+/* ---------- view transitions (React <ViewTransition>) ---------- */
+:root { --vt-out: 240ms; --vt-in: 420ms; --vt-move: 700ms; }
+@keyframes vt-fade { from { opacity: 0; } }
+@keyframes vt-slide { from { translate: var(--slide); } }
+::view-transition-old(.nav-forward) { --slide: -56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
+::view-transition-new(.nav-forward) { --slide: 56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
+::view-transition-old(.nav-back) { --slide: 56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
+::view-transition-new(.nav-back) { --slide: -56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
+::view-transition-group(.morph) { animation-duration: var(--vt-move); animation-timing-function: var(--ease); }
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .frame, .frame .photo, .caption, .reel-intro, .slide, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 767px) {
+  .nav { top: 0.75rem; padding-left: 1rem; gap: 0.9rem; }
+  .nav-brand { font-size: 1.1rem; }
+  .nav nav { gap: 0.75rem; font-size: 0.6875rem; letter-spacing: 0.04em; }
+  .nav nav .nav-lang { padding: 0.4rem 0.6rem; }
+
+  :root { --slide-top: 4.75rem; --slide-h: 60dvh; --wave-h: 30vh; --wave-y: calc(var(--slide-top) + var(--slide-h)); }
+  /* The filmstrip fills the screen: fixed-size frames, photos cropped to fit, one peeking at each side. */
+  .mosaic-track { padding-inline: 7vw; gap: 0.75rem; }
+  .slide { width: 86vw; height: var(--slide-h); transform: scale(0.94); transform-origin: 50% 100%; }
+  .slide .photo { height: 100%; aspect-ratio: auto !important; }
+  .slide .photo img { object-fit: cover; }
+  .mosaic-foot { align-items: center; }
+  .mosaic-arrows { display: none; } /* swipe */
+
+  .set-link, .is-flip .set-link { grid-template-columns: 1fr; }
+  .is-flip .stack { order: 0; }
+  .stack { width: min(calc(60dvh * var(--ar)), 88%); }
+  .set-block { padding-block: 4rem; }
+
+  .frame { --top: 4.5rem; --bottom: 7rem; }
+  .reel-rail { display: none; }
+
+  .about, .footer { grid-template-columns: 1fr; align-items: start; }
+}

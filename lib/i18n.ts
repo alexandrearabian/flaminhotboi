@@ -1,0 +1,83 @@
+// Everything the photographer provides lives here: name, contact, bio.
+// TODO(photographer): real name, email, Instagram, bio in both languages, optional portrait in /public.
+import type { Set } from '@/lib/sets'
+
+export const site = {
+  name: 'flaminhotboi',
+  navName: 'flamin', // short form in the nav pill
+  email: 'hello@example.com',
+  // Shown in the footer in this order. Add TikTok, YouTube, WhatsApp (https://wa.me/<number>)… as needed.
+  socials: [{ label: 'Instagram', href: 'https://instagram.com/' }],
+  portrait: '' as string, // e.g. '/portrait.jpg'
+}
+
+export const langs = ['en', 'es'] as const
+export type Lang = (typeof langs)[number]
+export const isLang = (l: string): l is Lang => (langs as readonly string[]).includes(l)
+
+export const t = {
+  en: {
+    tagline: 'Jazz, photographed live.',
+    seeSets: 'See the sets',
+    setlist: 'Setlist',
+    about: 'About',
+    openSet: 'Open set',
+    selected: 'Selected photos',
+    bookingLine: 'Concerts, festivals and music design.',
+    top: 'Back to top',
+    design: 'Design',
+    designBy: (name: string) => `Music design by ${name}`,
+    allSets: 'All sets',
+    nextSet: 'Next set',
+    track: 'Track',
+    photos: 'photos',
+    close: 'Close',
+    prev: 'Previous photo',
+    next: 'Next photo',
+    liveAt: (artist: string, venue: string) => (venue ? `${artist} live at ${venue}` : `${artist} live`),
+    photoBy: (name: string) => `Live jazz photograph by ${name}`,
+    empty: 'No sets yet. New concerts show up here within a day of being added.',
+    bookings: 'Bookings',
+    emailMe: 'Email me',
+    bio: [
+      'Placeholder bio. Two or three sentences from the photographer go here: who they are, where they shoot, and what draws them to jazz.',
+    ],
+  },
+  es: {
+    tagline: 'Jazz, fotografiado en directo.',
+    seeSets: 'Ver los sets',
+    setlist: 'Setlist',
+    about: 'Sobre mí',
+    openSet: 'Ver set',
+    selected: 'Fotos destacadas',
+    bookingLine: 'Conciertos, festivales y diseño musical.',
+    top: 'Volver arriba',
+    design: 'Diseño',
+    designBy: (name: string) => `Diseño musical de ${name}`,
+    allSets: 'Todos los sets',
+    nextSet: 'Siguiente set',
+    track: 'Tema',
+    photos: 'fotos',
+    close: 'Cerrar',
+    prev: 'Foto anterior',
+    next: 'Foto siguiente',
+    liveAt: (artist: string, venue: string) => (venue ? `${artist} en directo en ${venue}` : `${artist} en directo`),
+    photoBy: (name: string) => `Fotografía de jazz en directo de ${name}`,
+    empty: 'Todavía no hay sets. Los conciertos nuevos aparecen aquí en menos de un día.',
+    bookings: 'Contrataciones',
+    emailMe: 'Escríbeme',
+    bio: [
+      'Biografía provisional. Aquí van dos o tres frases del fotógrafo: quién es, dónde dispara y qué le lleva al jazz.',
+    ],
+  },
+} satisfies Record<Lang, unknown>
+
+// "Venue, City" and the date, skipping whatever the folder name didn't include.
+export const details = (x: Set) =>
+  [[x.venue, x.city].filter(Boolean).join(', '), x.date && fmtDate(x.date)].filter(Boolean) as string[]
+
+// "2026-03-14" -> "14.03.26"
+export const fmtDate = (d: string) => {
+  const [y, m, day] = d.split('-')
+  return `${day}.${m}.${y.slice(2)}`
+}
