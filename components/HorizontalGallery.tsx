@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { Lightbox, type Labels } from '@/components/Lightbox'
-import { Photo } from '@/components/Photo'
+import { GALLERY_SIZES, Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
 
@@ -96,7 +96,7 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
             style={{ '--ar': p.w / p.h } as React.CSSProperties}
             onClick={() => !drag.current.moved && (i === active ? setOpen(i) : center(i))}
           >
-            <Photo p={p} alt={alt} sizes="(min-width: 768px) 60vw, 84vw" priority={i === 0} />
+            <Photo p={p} alt={alt} sizes={GALLERY_SIZES} priority={i === 0} />
           </figure>
         ))}
       </div>
