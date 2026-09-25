@@ -18,7 +18,7 @@ export function Setlist({ sets, lang }: { sets: Set[]; lang: Lang }) {
   }, [sets])
 
   return (
-    <section id="setlist" className="sets" ref={ref}>
+    <section id="work" className="sets" ref={ref}>
       <h2 className="sets-title display-xl">{t[lang].setlist}</h2>
       {sets.length === 0 && <p className="empty">{t[lang].empty}</p>}
       {sets.map((s, n) => (

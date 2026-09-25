@@ -22,7 +22,7 @@ export const t = {
   en: {
     tagline: 'Art.',
     seeSets: 'See the sets',
-    setlist: 'Setlist',
+    setlist: 'Work',
     about: 'About',
     advertising: 'Advertising',
     openSet: 'Open set',
@@ -50,7 +50,7 @@ export const t = {
   es: {
     tagline: 'Arte.',
     seeSets: 'Ver los sets',
-    setlist: 'Setlist',
+    setlist: 'Work',
     about: 'Sobre mí',
     advertising: 'Publicidades',
     openSet: 'Ver set',

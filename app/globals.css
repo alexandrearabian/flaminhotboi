@@ -105,25 +105,25 @@ body::after {
   .glass { background: rgb(22 20 20 / 0.94); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 
-/* ---------- nav ---------- */
+/* ---------- nav: plain text along the top of the page, no container ---------- */
 .nav {
-  position: fixed;
-  top: 1rem;
-  left: 50%;
-  translate: -50% 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
-  gap: clamp(1rem, 3vw, 2rem);
-  padding: 0.45rem 0.45rem 0.45rem 1.35rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding: 1.6rem var(--gutter);
   view-transition-name: nav;
-  white-space: nowrap;
 }
-.nav-brand { font: 1.35rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.05em; text-transform: uppercase; }
-.nav nav { display: flex; align-items: center; gap: clamp(0.9rem, 2.5vw, 1.75rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
-.nav nav a { color: rgb(236 231 223 / 0.82); transition: color 0.4s var(--ease); }
-.nav nav a:hover { color: #fff; }
-.nav nav .nav-lang { padding: 0.45rem 0.8rem; border-radius: 999px; background: rgb(255 255 255 / 0.12); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2); color: var(--ink); }
+.nav-brand { font: 1.5rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.05em; text-transform: uppercase; }
+.nav nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem clamp(1.1rem, 2.6vw, 2.25rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap; }
+.nav nav a { color: var(--dim); transition: color 0.35s var(--ease); }
+.nav nav a:hover, .nav nav .nav-lang { color: var(--ink); }
 
 /* ---------- pill CTA with nested icon (uses .glass) ---------- */
 .cta {
@@ -430,23 +430,28 @@ body::after {
 }
 .hgal-track::-webkit-scrollbar { display: none; }
 .hgal-track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
-/* Every slide keeps its full size and no transform, because scroll snapping measures the
-   transformed box: scale the slide itself and it snaps off-center, then drifts as it grows.
-   Only the photo inside shrinks toward the middle (compositor-only, so it's free to animate). */
+/* Size follows scroll position directly: each photo grows as it nears the middle and shrinks
+   toward it as it leaves, driven by the scroll itself (no state, no timers, nothing to lag).
+   The slide never transforms, so snapping centers it exactly; only the photo inside scales.
+   Browsers without scroll-driven animations show every photo at full size. */
 .hgal-slide {
   flex: none;
   width: min(calc(var(--gh) * var(--ar)), var(--cap));
   scroll-snap-align: center;
+  view-timeline: --slide inline;
   cursor: pointer;
 }
-.hgal-slide .photo {
-  scale: 0.52;
-  transform-origin: 100% 50%;
-  transition: scale 0.55s var(--ease), box-shadow 0.55s var(--ease);
-}
-.hgal-slide.is-after .photo { transform-origin: 0% 50%; }
 .hgal-slide.is-on { cursor: zoom-in; }
-.hgal-slide.is-on .photo { scale: 1; box-shadow: 0 60px 110px -40px #000; }
+.hgal-slide .photo { box-shadow: 0 50px 100px -45px #000; }
+@supports (animation-timeline: view()) {
+  .hgal-slide .photo { animation: hgal-focus linear both; animation-timeline: --slide; }
+}
+@keyframes hgal-focus {
+  0%, 36% { scale: 0.55; transform-origin: 0% 50%; }
+  50% { scale: 1; transform-origin: 0% 50%; }
+  50.001% { scale: 1; transform-origin: 100% 50%; }
+  64%, 100% { scale: 0.55; transform-origin: 100% 50%; }
+}
 .hgal-controls {
   display: flex;
   align-items: center;
@@ -612,19 +617,19 @@ html:has(.lightbox[open]) { overflow: hidden; }
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .hgal-slide .photo, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .sleeve, .lightbox, .lightbox-photo { animation: none !important; }
+  .sleeve, .lightbox, .lightbox-photo, .hgal-slide .photo { animation: none !important; }
 }
 
 /* ---------- mobile ---------- */
 @media (max-width: 767px) {
-  .nav { top: 0.75rem; padding-left: 1rem; gap: 0.9rem; }
-  .nav-brand { font-size: 1.1rem; }
-  .nav nav { gap: 0.75rem; font-size: 0.6875rem; letter-spacing: 0.04em; }
-  .nav nav .nav-lang { padding: 0.4rem 0.6rem; }
+  .nav { padding-block: 1.1rem; gap: 0.6rem 1rem; }
+  .nav-brand { font-size: 1.2rem; }
+  .nav nav { gap: 0.4rem 0.9rem; font-size: 0.6875rem; letter-spacing: 0.06em; }
+  .display-xl { font-size: clamp(2.5rem, 13vw, 3.5rem); overflow-wrap: normal; } /* "Contrataciones" on one line */
 
-  .mosaic { padding-top: 4.5rem; }
+  .mosaic { padding-top: 6rem; } /* the nav may take two lines here */
   .spread { --gx: var(--xm0); --gy: var(--ym0); height: calc(var(--hm) * 1svh); }
   .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 42svh; }
   .pic:first-child { --hmax: 52svh; }

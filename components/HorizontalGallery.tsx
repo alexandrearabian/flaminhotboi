@@ -5,7 +5,8 @@ import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
 
-// Set pages: one photo large in the middle, its neighbors shrunk toward it at the sides.
+// Set pages: one photo large in the middle, its neighbors shrunk toward it at the sides (sized by
+// scroll position in CSS, not by React state, so it follows the finger exactly).
 // Swipe, drag, click a neighbor or use the arrows to move; tap the one in the middle to open it.
 const Arrow = ({ flip }: { flip?: boolean }) => (
   <svg width="40" height="14" viewBox="0 0 40 14" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden style={flip ? { scale: '-1 1' } : undefined}>
@@ -89,7 +90,7 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
           <figure
             key={p.id}
             data-i={i}
-            className={`hgal-slide ${i === active ? 'is-on' : i < active ? 'is-before' : 'is-after'}`}
+            className={`hgal-slide${i === active ? ' is-on' : ''}`}
             style={{ '--ar': p.w / p.h } as React.CSSProperties}
             onClick={() => !drag.current.moved && (i === active ? setOpen(i) : center(i))}
           >
