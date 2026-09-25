@@ -10,6 +10,8 @@ export function Nav({ lang }: { lang: Lang }) {
   const other: Lang = lang === 'en' ? 'es' : 'en'
   const path = usePathname().replace(/^\/(en|es)/, `/${other}`)
 
+  useEffect(() => { document.documentElement.lang = lang }, [lang])
+
   // Focus rings show only while someone is using Tab to move around; a click hides them again.
   useEffect(() => {
     const root = document.documentElement
@@ -28,7 +30,7 @@ export function Nav({ lang }: { lang: Lang }) {
         <Link href={`/${lang}/work`} transitionTypes={['nav-forward']}>{t[lang].setlist}</Link>
         <Link href={`/${lang}/about`} transitionTypes={['nav-forward']}>{t[lang].about}</Link>
         <a href="https://ramitoto.myportfolio.com/" target="_blank" rel="noopener noreferrer">{t[lang].advertising}</a>
-        <Link href={path} hrefLang={other} className="nav-lang" aria-label={other === 'en' ? 'English' : 'Español'} title={other === 'en' ? 'English' : 'Español'}>
+        <Link href={path} hrefLang={other} scroll={false} className="nav-lang" aria-label={other === 'en' ? 'English' : 'Español'} title={other === 'en' ? 'English' : 'Español'}>
           {lang.toUpperCase()}
         </Link>
       </nav>

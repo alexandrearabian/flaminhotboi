@@ -1,15 +1,9 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
 import { notFound } from 'next/navigation'
 import { Nav } from '@/components/Nav'
-import { Atmosphere } from '@/components/Atmosphere'
 import { Footer } from '@/components/Footer'
 import { isLang, langs, site, t } from '@/lib/i18n'
 import { featured } from '@/lib/sets'
-import '../globals.css'
-
-// Display only. Body copy is Helvetica (globals.css).
-const display = localFont({ src: '../../fonts/Parafina-RegularL.otf', variable: '--font-display' })
 
 export const dynamicParams = false
 export const generateStaticParams = () => langs.map((lang) => ({ lang }))
@@ -33,14 +27,11 @@ export default async function Layout({ children, params }: { children: React.Rea
   const { lang } = await params
   if (!isLang(lang)) notFound()
   return (
-    <html lang={lang} className={display.variable} data-scroll-behavior="smooth" style={{ '--gel': featured[0]?.gel } as React.CSSProperties}>
-      <body>
-        <a href="#main" className="skip">Skip to content</a>
-        <Atmosphere />
-        <Nav lang={lang} />
-        {children}
-        <Footer lang={lang} />
-      </body>
-    </html>
+    <>
+      <a href="#main" className="skip">Skip to content</a>
+      <Nav lang={lang} />
+      {children}
+      <Footer lang={lang} />
+    </>
   )
 }
