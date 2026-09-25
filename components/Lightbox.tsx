@@ -114,7 +114,6 @@ export function Lightbox({ photos, alt, index, onIndex, labels, origin }: {
                 <button type="button" className="glass" onClick={() => step(1)} aria-label={labels.next}>→</button>
               </>
             )}
-            <button type="button" className="glass" onClick={close} aria-label={labels.close}>✕</button>
           </div>
         </>
       )}
