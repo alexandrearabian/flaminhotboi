@@ -16,8 +16,6 @@
   --font-body: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
-  --wave-y: 46svh; /* through the hero print */
-  --wave-h: 44vh;
   color-scheme: dark;
 }
 
@@ -42,19 +40,9 @@ a, button { -webkit-tap-highlight-color: transparent; }
 h1, h2, h3, p, figure { margin: 0; font-weight: 400; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 
-/* Layers, back to front: room light (-2), waves (-1), content, intro deal (15), nav (20), grain (30).
-   Both canvases fade their own color (components/Atmosphere.tsx). */
-.glow { position: fixed; inset: 0; z-index: -2; width: 100%; height: 100%; pointer-events: none; }
-.waves {
-  position: fixed;
-  left: 0;
-  top: var(--wave-y);
-  z-index: -1;
-  width: 100%;
-  height: var(--wave-h);
-  translate: 0 -50%;
-  pointer-events: none;
-}
+/* Layers, back to front: stage beams (-1, components/Atmosphere.tsx), content, intro deal (15),
+   nav (20), grain (30). */
+.glow { position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%; pointer-events: none; }
 /* The one foreground effect: a faint, static film grain (no blend mode, no animation: both would
    force the whole screen to recomposite every frame). */
 body::after {
@@ -568,7 +556,6 @@ body::after {
   .nav nav { gap: 0.75rem; font-size: 0.6875rem; letter-spacing: 0.04em; }
   .nav nav .nav-lang { padding: 0.4rem 0.6rem; }
 
-  :root { --wave-h: 30vh; --wave-y: 40svh; }
   .mosaic { padding-top: 4.5rem; }
   .spread { --gx: var(--xm0); --gy: var(--ym0); height: calc(var(--hm) * 1svh); }
   .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 42svh; }

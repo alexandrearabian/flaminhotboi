@@ -7,7 +7,7 @@ import type { Photo as P } from '@/lib/sets'
 export type Frame = { photo: P; alt: string; title?: string; name?: string }
 
 // A pinned stage; each screen of scroll brings the next photo on. Photos are shown whole and at
-// full strength, framed by the dark room (and the waves behind it); text lives below, never on top.
+// full strength, framed by the dark room; text lives below, never on top.
 export function Reel({ frames, intro }: { frames: Frame[]; intro?: React.ReactNode }) {
   const [active, setActive] = useState(0)
   const [inView, setInView] = useState(true)

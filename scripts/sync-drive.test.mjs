@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import sharp from 'sharp'
-import { gelColor, parseFolderName, slugify } from './sync-drive.mjs'
+import { gelColor, parseFolderName, slugify, splitOrder } from './sync-drive.mjs'
 
 test('parses folder names', () => {
   assert.deepEqual(parseFolderName('2026-03-14 — Blue Reed Quartet — Café Central, Madrid'),
@@ -11,6 +11,15 @@ test('parses folder names', () => {
   assert.equal(parseFolderName('2026-03-14 - Trio - Club').city, '')
   assert.deepEqual(parseFolderName(' Fer Moreno '), { date: '', artist: 'Fer Moreno', venue: '', city: '' })
   assert.equal(slugify('2026-03-14 Café Ñandú'), '2026-03-14-cafe-nandu')
+})
+
+test('a leading number orders folders and is dropped from the name', () => {
+  assert.deepEqual(splitOrder('06 MUSIC DESIGN'), { order: 6, rest: 'MUSIC DESIGN' })
+  assert.deepEqual(splitOrder('01-Vinocio'), { order: 1, rest: 'Vinocio' })
+  assert.deepEqual(splitOrder('3. 2026-03-14 — Trio — Club'), { order: 3, rest: '2026-03-14 — Trio — Club' })
+  assert.deepEqual(splitOrder('2026-03-14 — Trio — Club'), { order: Infinity, rest: '2026-03-14 — Trio — Club' })
+  assert.deepEqual(splitOrder('MOSAICO PRINCIPAL'), { order: Infinity, rest: 'MOSAICO PRINCIPAL' })
+  assert.deepEqual(splitOrder('1975'), { order: Infinity, rest: '1975' })
 })
 
 const hue = (hex) => {

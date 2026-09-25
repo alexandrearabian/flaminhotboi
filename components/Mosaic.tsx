@@ -31,7 +31,10 @@ const slot = (i: number) => {
   }
 }
 
-// Opening sequence, first visit per tab: every main photo is dealt onto the screen like a stack
+// Once per page load: coming back from a set page goes straight to the table.
+let introPlayed = false
+
+// Opening sequence, on every page load: every main photo is dealt onto the screen like a stack
 // of prints, fast; the last one lands, fills the room, settles onto the table, and the rest
 // spread out from under it. Every print can then be picked up and moved.
 export function Mosaic({ photos, title, footer, alt, label }: {
@@ -49,14 +52,12 @@ export function Mosaic({ photos, title, footer, alt, label }: {
 
   // Decide once on mount whether to play the intro.
   useEffect(() => {
-    let played = false
-    try { played = sessionStorage.getItem('intro') === '1' } catch {}
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const atTop = spread.current!.getBoundingClientRect().top < innerHeight
-    if (played || still || !atTop || photos.length < 2) return setPhase('done')
-    try { sessionStorage.setItem('intro', '1') } catch {}
+    if (introPlayed || still || !atTop || photos.length < 2) return setPhase('done')
     setPhase('intro')
   }, [photos.length])
+  useEffect(() => { if (phase === 'done') introPlayed = true }, [phase])
 
   // The choreography. Any wheel, touch, key or click skips straight to the table.
   const playing = phase === 'intro' || phase === 'settling'

@@ -16,15 +16,19 @@ const FEATURED = /^mosaico principal$/i // this folder feeds the home page's ope
 const DESIGN = /^music design$/i // design work: its own page, not a concert
 const FEATURED_COUNT = 12 // first N photos by filename; ponytail: raise it or make the reel faster if they want more
 
-// "01-2026-03-14 — Artist — Venue, City" or "01-Artist" for custom sort order.
-// Numeric prefix (01-, 02-, etc) sets sort order; removed from artist name.
+// "03 Fer Moreno", "03-Fer Moreno", "03. 2026-03-14 — Artist — Venue": a leading number of up to
+// three digits only sets the order (01 first) and never shows on the site. A date is not a number.
+export function splitOrder(name) {
+  const m = name.trim().match(/^(\d{1,3})(?!\d)(?:\s*[-–—._)]\s*|\s+)(?=\S)/)
+  return m ? { order: Number(m[1]), rest: name.trim().slice(m[0].length) } : { order: Infinity, rest: name.trim() }
+}
+
+// "2026-03-14 — Artist — Venue, City"; anything that doesn't fit is just the artist.
 export function parseFolderName(name) {
-  const order = name.match(/^(\d{2})-/)
-  const clean = order ? name.slice(3) : name
-  const m = clean.trim().match(/^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(.+?)\s+[—–-]\s+(.+?)(?:,\s*([^,]+))?$/)
-  if (!m) return { order: order ? parseInt(order[1]) : Infinity, date: '', artist: clean.trim(), venue: '', city: '' }
+  const m = name.trim().match(/^(\d{4}-\d{2}-\d{2})\s+[—–-]\s+(.+?)\s+[—–-]\s+(.+?)(?:,\s*([^,]+))?$/)
+  if (!m) return { date: '', artist: name.trim(), venue: '', city: '' }
   const [, date, artist, venue, city = ''] = m
-  return { order: order ? parseInt(order[1]) : Infinity, date, artist: artist.trim(), venue: venue.trim(), city: city.trim() }
+  return { date, artist: artist.trim(), venue: venue.trim(), city: city.trim() }
 }
 
 // Promise.all with at most `limit` in flight; keeps input order.
@@ -259,28 +263,30 @@ async function main() {
   const slugs = new Set()
   for (const folder of folders) {
     const files = [...folder.files].sort(byName) // Drive already filtered to images; sharp skips what it can't read
-    if (FEATURED.test(folder.name.trim())) {
+    const { order, rest: name } = splitOrder(folder.name)
+    if (FEATURED.test(name)) {
       featured = await processAll(folder, files.slice(0, FEATURED_COUNT))
       console.log(`  ${folder.name}: ${featured.length} photos for the home reel`)
       continue
     }
-    if (DESIGN.test(folder.name.trim())) {
+    if (DESIGN.test(name)) {
       design = await processAll(folder, files)
       console.log(`  ${folder.name}: ${design.length} pieces for the design page`)
       continue
     }
     const photos = await processAll(folder, files)
     if (!photos.length) continue
-    const info = parseFolderName(folder.name)
+    const info = parseFolderName(name)
     const coverIdx = Math.max(0, files.findIndex((f) => f.name.startsWith('00')))
     let slug = slugify(`${info.date} ${info.artist}`) || 'set'
     while (slugs.has(slug)) slug += '-2'
     slugs.add(slug)
-    sets.push({ slug, ...info, created: folder.created ?? '', cover: photos[Math.min(coverIdx, photos.length - 1)], photos })
+    sets.push({ slug, order, ...info, created: folder.created ?? '', cover: photos[Math.min(coverIdx, photos.length - 1)], photos })
     console.log(`  ${info.artist}${info.date ? `  ${info.date}` : ''}  (${photos.length} photos)`)
   }
-  // Sort by custom order (numeric prefix) first, then by date. Sets without prefix sort last.
+  // Numbered folders first, 01 at the top; then the rest, newest first.
   sets.sort((a, b) => a.order - b.order || (b.date || b.created).localeCompare(a.date || a.created))
+  for (const s of sets) delete s.order
 
   // Rebuild public/photos from cache so deleted photos disappear from the site.
   // ponytail: cache dir is never pruned; clear .next/cache/drive if it ever gets big.
