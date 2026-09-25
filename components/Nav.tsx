@@ -14,8 +14,8 @@ export function Nav({ lang, hasDesign }: { lang: Lang; hasDesign: boolean }) {
         {site.navName}
       </Link>
       <nav>
-        <Link href={`/${lang}#work`} transitionTypes={['nav-back']}>{t[lang].setlist}</Link>
-        {hasDesign && <Link href={`/${lang}#design`} transitionTypes={['nav-back']}>{t[lang].design}</Link>}
+        <Link href={`/${lang}/work`} transitionTypes={['nav-forward']}>{t[lang].setlist}</Link>
+        {hasDesign && <Link href={`/${lang}/work#design`} transitionTypes={['nav-forward']}>{t[lang].design}</Link>}
         <Link href={`/${lang}/about`} transitionTypes={['nav-forward']}>{t[lang].about}</Link>
         <a href="https://ramitoto.myportfolio.com/" target="_blank" rel="noopener noreferrer">{t[lang].advertising}</a>
         <Link href={path} hrefLang={other} className="nav-lang" aria-label={other === 'en' ? 'English' : 'Español'} title={other === 'en' ? 'English' : 'Español'}>

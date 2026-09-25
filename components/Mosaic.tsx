@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Lightbox, type Labels } from '@/components/Lightbox'
 import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
@@ -11,47 +11,24 @@ const T = (dx: number, dy: number, s: number) => `translate(${dx}px, ${dy}px) sc
 // Scattered like prints tossed on a table: fixed per index so it's the same on every visit.
 const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${((i * 53) % 13) - 6}vw`, '--y': `${((i * 29) % 9) - 4}vh` })
 
-// The table: an even grid of small prints, each set down a little off-true, around the hero.
-// Desktop: 6 columns, the hero taking the middle two of the top two rows. Phones: 3 columns, the
-// hero across the top two. Row heights in svh; x in % of the table, y in svh, width in vw.
-const DESK = { cols: 6, row: 24, hero: (c: number, r: number) => r < 2 && (c === 2 || c === 3) }
-const PHONE = { cols: 3, row: 19, hero: (_: number, r: number) => r < 2 }
-// Integer hash in [0, 1]: identical on server and client, so hydration never disagrees.
-const rnd = (i: number, k: number) => ((i * (37 + k * 14) + k * 11) % 17) / 16
-const round1 = (v: number) => Math.round(v * 10) / 10
-// Grid cell of the k-th print after the hero, skipping the cells the hero covers.
-const cell = (k: number, g: typeof DESK) => {
-  for (let n = 0, at = 0; ; at++) {
-    const c = at % g.cols, r = Math.floor(at / g.cols)
-    if (!g.hero(c, r) && n++ === k) return { c, r }
-  }
-}
-// Once spread, each print drifts in its own slow little circle: radius in px, one lap in s.
-const orbit = (i: number) => ({ '--or': round1(3 + rnd(i, 9) * 3), '--od': round1(11 + rnd(i, 10) * 7) })
-const slot = (i: number) => ({ ...place(i), ...orbit(i) })
-const place = (i: number) => {
-  if (i === 0) return { '--x': 50, '--y': DESK.row, '--w': 26, '--r': 0, '--xm': 50, '--ym': PHONE.row, '--wm': 84, '--rm': 0 }
-  const d = cell(i - 1, DESK), m = cell(i - 1, PHONE)
-  const jig = (k: number, amount: number) => round1((rnd(i, k) - 0.5) * amount)
-  return {
-    '--x': round1(((d.c + 0.5) / DESK.cols) * 100) + jig(1, 3), '--y': (d.r + 0.5) * DESK.row + jig(2, 4),
-    '--w': round1(11.5 + rnd(i, 3) * 2.5), '--r': jig(4, 6),
-    '--xm': round1(((m.c + 0.5) / PHONE.cols) * 100) + jig(5, 4), '--ym': (m.r + 0.5) * PHONE.row + jig(6, 3),
-    '--wm': round1(25 + rnd(i, 7) * 3), '--rm': jig(8, 6),
-  }
-}
-const DEALT = 14 // prints flicked onto the screen in the intro; the rest just join the spread
+const ROWS = 3
+const COPIES = 3 // each row is its photos three times over; it drifts within the middle copy and wraps
+const SPEED = 26 // px per second
+const RESUME = 1400 // ms after the visitor lets go before a row drifts again
+const DEALT = 14 // prints flicked onto the screen in the intro
 
-// Once per page load: coming back from a set page goes straight to the table.
+// Once per page load: coming back from another page skips the intro...
 let introPlayed = false
+// ...and each row picks up where it was (offset into its middle copy, in px).
+let saved: number[] | null = null
 
 // Opening sequence, on every page load: every main photo is dealt onto the screen like a stack
-// of prints, fast; the last one lands, fills the room, settles onto the table, and the rest
-// spread out from under it. Every print can then be picked up and moved, or tapped to open.
-export function Mosaic({ photos, title, footer, alt, label, labels }: {
+// of prints, fast; the last one lands, fills the room, then settles into the top row while the
+// three rows slide in. Rows then drift in alternating directions, forever. Swipe, scroll or drag
+// one and it follows you, then drifts on from there; tap a photo to open it.
+export function Mosaic({ photos, title, alt, label, labels }: {
   photos: P[]
   title: string
-  footer: React.ReactNode
   alt: string
   label: string
   labels: Labels
@@ -59,22 +36,35 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
   const [phase, setPhase] = useState<Phase>('pending')
   const [dealing, setDealing] = useState(false) // the intro's overlay; outlives 'settling' by a beat
   const [open, setOpen] = useState<number | null>(null)
-  const spread = useRef<HTMLDivElement>(null)
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([])
   const deal = useRef<HTMLDivElement>(null)
   const hero = useRef<HTMLImageElement>(null)
-  const top = useRef(20) // z-index of the print picked up last
+  const moved = useRef(false) // a mouse drag just happened, so the click that ends it isn't a tap
+  const rows = Array.from({ length: ROWS }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % ROWS === k))
+
+  // Before paint: put each row where it was left, or (first time) the hero in the middle of the top row.
+  useLayoutEffect(() => {
+    rowRefs.current.forEach((el, k) => {
+      if (!el) return
+      const W = el.scrollWidth / COPIES
+      if (saved) el.scrollLeft = W + saved[k]
+      else if (k === 0) {
+        const h = el.querySelector<HTMLElement>('[data-hero]')!
+        el.scrollLeft = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
+      } else el.scrollLeft = W
+    })
+  }, [])
 
   // Decide once on mount whether to play the intro.
   useEffect(() => {
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const atTop = spread.current!.getBoundingClientRect().top < innerHeight
-    if (introPlayed || still || !atTop || photos.length < 2) return setPhase('done')
+    if (introPlayed || still || scrollY > innerHeight / 2 || photos.length < 2) return setPhase('done')
     setDealing(true)
     setPhase('intro')
   }, [photos.length])
   useEffect(() => { if (phase === 'done') introPlayed = true }, [phase])
 
-  // The choreography. Any wheel, touch, key or click skips straight to the table.
+  // The choreography. Any wheel, touch, key or click skips straight to the rows.
   const playing = phase === 'intro' || phase === 'settling'
   useEffect(() => {
     if (!playing) return
@@ -84,7 +74,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
     events.forEach((e) => addEventListener(e, skip, { once: true, passive: true }))
 
     const run = async () => {
-      const r = spread.current!.querySelector<HTMLElement>('.pic')!.getBoundingClientRect()
+      const r = rowRefs.current[0]!.querySelector<HTMLElement>('[data-hero]')!.getBoundingClientRect()
       const img = hero.current!
       Object.assign(img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
       const dx = innerWidth / 2 - (r.left + r.width / 2)
@@ -117,8 +107,8 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
       setPhase('settling')
       const settle = img.animate([{ transform: T(dx, dy, sCover) }, { transform: 'none' }],
         { duration: 1150, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
-      // The curve has a long tail: by now the hero looks landed, so the rest start spreading out
-      // from under it while it finishes; the overlay goes once it's exactly in place.
+      // The curve has a long tail: by now the hero looks landed, so the rows start sliding in
+      // around it while it finishes; the overlay goes once it's exactly in place.
       await wait(420)
       if (cancelled) return
       setPhase('done')
@@ -129,86 +119,105 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
     return () => { cancelled = true; events.forEach((e) => removeEventListener(e, skip)) }
   }, [playing])
 
-  // The print crossing the middle of the screen tints the room.
+  // The drift. Rows are real scrollers (so swiping, trackpads and momentum are native); this just
+  // nudges each one along every frame unless the visitor has had hold of it in the last moment.
   useEffect(() => {
-    setGel(photos[0].gel)
+    if (phase !== 'done') return
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
+    const state = els.map((el) => ({ pos: el.scrollLeft, until: 0 }))
+    const hold = (k: number) => () => (state[k].until = performance.now() + RESUME)
+    // Scrolling that follows a touch (momentum, a mouse drag) keeps the hold; the drift's own doesn't.
+    const follow = (k: number) => () => { if (performance.now() < state[k].until) hold(k)() }
+    const off = els.flatMap((el, k) => {
+      const on = [['pointerdown', hold(k)], ['wheel', hold(k)], ['touchstart', hold(k)], ['scroll', follow(k)]] as const
+      on.forEach(([e, f]) => el.addEventListener(e, f, { passive: true }))
+      return on.map(([e, f]) => () => el.removeEventListener(e, f))
+    })
+
+    let raf = 0, last = performance.now()
+    const loop = (now: number) => {
+      raf = requestAnimationFrame(loop)
+      const dt = Math.min(0.05, (now - last) / 1000)
+      last = now
+      els.forEach((el, k) => {
+        const s = state[k]
+        if (now < s.until) { s.pos = el.scrollLeft; return } // the visitor has it
+        const W = el.scrollWidth / COPIES
+        s.pos += SPEED * dt * (k % 2 ? -1 : 1)
+        if (s.pos < W * 0.5) s.pos += W // every copy looks the same, so jumping a whole copy is invisible
+        else if (s.pos > W * 1.5) s.pos -= W
+        el.scrollLeft = s.pos
+      })
+    }
+    if (!still) raf = requestAnimationFrame(loop)
+
+    // The photo passing the middle of the middle row tints the room.
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) if (e.isIntersecting) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
-    }, { rootMargin: '-45% 0px -45% 0px' })
-    spread.current!.querySelectorAll('.pic').forEach((el) => io.observe(el))
-    return () => io.disconnect()
-  }, [photos])
+    }, { root: els[1] ?? null, rootMargin: '0px -49.5% 0px -49.5%' })
+    els[1]?.querySelectorAll('figure').forEach((f) => io.observe(f))
 
-  // Pick a print up and move it; let go without moving and it opens. Position lives in CSS
-  // variables, so dragging never re-renders. On touch, a vertical swipe still scrolls the page
-  // (touch-action: pan-y cancels the drag).
-  const grab = (e: React.PointerEvent<HTMLElement>, i: number) => {
-    const p = photos[i]
-    if (e.button !== 0 || phase !== 'done') return
-    const el = e.currentTarget
-    const box = spread.current!.getBoundingClientRect()
-    const r = el.getBoundingClientRect()
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2
-    const ox = parseFloat(el.style.getPropertyValue('--dx')) || 0
-    const oy = parseFloat(el.style.getPropertyValue('--dy')) || 0
-    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
-    el.setPointerCapture(e.pointerId)
-    el.style.zIndex = String(++top.current)
-    el.classList.add('is-held')
-    setGel(p.gel)
-    let moved = false
-    const move = (ev: PointerEvent) => {
-      moved ||= Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) > 6
-      // The print's center stays on the table, so nothing gets lost off-screen.
-      el.style.setProperty('--dx', `${ox + clamp(ev.clientX - e.clientX, box.left - cx, box.right - cx)}px`)
-      el.style.setProperty('--dy', `${oy + clamp(ev.clientY - e.clientY, box.top - cy, box.bottom - cy)}px`)
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      off.forEach((f) => f())
+      saved = els.map((el) => { const W = el.scrollWidth / COPIES; return (((el.scrollLeft - W) % W) + W) % W })
     }
-    const drop = (ev: PointerEvent) => {
-      if (!moved && ev.type === 'pointerup') setOpen(i)
-      el.classList.remove('is-held')
+  }, [phase, photos])
+
+  // Mouse: drag a row sideways (touch and trackpads scroll it natively).
+  const drag = (e: React.PointerEvent<HTMLDivElement>) => {
+    moved.current = false
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    const el = e.currentTarget
+    const x0 = e.clientX, left0 = el.scrollLeft
+    el.setPointerCapture(e.pointerId)
+    el.classList.add('is-dragging')
+    const move = (ev: PointerEvent) => {
+      if (Math.abs(ev.clientX - x0) > 5) moved.current = true
+      el.scrollLeft = left0 - (ev.clientX - x0)
+    }
+    const up = () => {
+      el.classList.remove('is-dragging')
       el.removeEventListener('pointermove', move)
-      el.removeEventListener('pointerup', drop)
-      el.removeEventListener('pointercancel', drop)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
     }
     el.addEventListener('pointermove', move)
-    el.addEventListener('pointerup', drop)
-    el.addEventListener('pointercancel', drop)
+    el.addEventListener('pointerup', up)
+    el.addEventListener('pointercancel', up)
   }
 
-  const s0 = slot(0)
-  const n = photos.length
   return (
-    <section className={`mosaic is-${phase}`}>
+    <section className={`mosaic is-${phase}`} aria-label={label}>
       <h1 className="sr-only">{title}</h1>
-
-      <div
-        ref={spread}
-        className="spread"
-        role="group"
-        aria-label={label}
-        style={{
-          '--h': Math.max(...photos.map((_, i) => slot(i)['--y'])) + DESK.row * 0.7,
-          '--hm': Math.max(...photos.map((_, i) => slot(i)['--ym'])) + PHONE.row * 0.7,
-          '--x0': s0['--x'], '--y0': s0['--y'], '--xm0': s0['--xm'], '--ym0': s0['--ym'],
-        } as React.CSSProperties}
-      >
-        {photos.map((p, i) => (
-          <figure
-            key={p.id}
-            data-i={i}
-            className="pic"
-            style={{ ...slot(i), '--ar': p.w / p.h, '--i': i } as React.CSSProperties}
-            tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && setOpen(i)}
-            onPointerDown={(e) => grab(e, i)}
-            onDragStart={(e) => e.preventDefault()}
-          >
-            <Photo p={p} alt={alt} sizes={i ? '(min-width: 768px) 15vw, 30vw' : '(min-width: 768px) 28vw, 86vw'} priority={i === 0} />
-          </figure>
-        ))}
-      </div>
-
-      <div className="mosaic-foot">{footer}</div>
+      {rows.map((row, k) => (
+        <div
+          key={k}
+          ref={(el) => { rowRefs.current[k] = el }}
+          className="mrow"
+          onPointerDown={drag}
+          onDragStart={(e) => e.preventDefault()}
+        >
+          {Array.from({ length: COPIES }, (_, c) =>
+            row.map(({ p, i }, j) => (
+              <figure
+                key={`${c}-${p.id}`}
+                data-i={i}
+                data-hero={c === 1 && i === 0 ? '' : undefined}
+                style={{ '--ar': p.w / p.h, '--j': j } as React.CSSProperties}
+                aria-hidden={c !== 1 || undefined}
+                tabIndex={c === 1 ? 0 : -1}
+                onKeyDown={(e) => e.key === 'Enter' && setOpen(i)}
+                onClick={() => !moved.current && setOpen(i)}
+              >
+                <Photo p={p} alt={alt} sizes="(min-width: 768px) 30vw, 90vw" priority={c === 1 && j < 5} />
+              </figure>
+            )),
+          )}
+        </div>
+      ))}
       <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
 
       {dealing && (

@@ -45,7 +45,7 @@ export default async function SetPage({ params }: Params) {
         <section className="set-intro">
           <h1 className="display-l">{set.artist}</h1>
           <p className="intro-meta">
-            <Link href={`/${lang}#work`} className="back" transitionTypes={['nav-back']}>← {tr.allSets}</Link>
+            <Link href={`/${lang}/work`} className="back" transitionTypes={['nav-back']}>← {tr.allSets}</Link>
             {details(set).map((d) => <span key={d}>{d}</span>)}
             <span>{photos.length} {tr.photos}</span>
           </p>

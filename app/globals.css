@@ -107,7 +107,7 @@ body::after {
 
 /* ---------- nav: plain text along the top, staying put while the page scrolls ----------
    No container: a soft dark shadow behind the letters keeps them legible over any photo, and
-   only the links take clicks, so prints under the empty stretch can still be grabbed. */
+   only the links take clicks, so the photos under the empty stretch can still be dragged. */
 .nav {
   position: fixed;
   pointer-events: none;
@@ -125,8 +125,8 @@ body::after {
   view-transition-name: nav;
 }
 .nav a { pointer-events: auto; }
-.nav-brand { font: 1.5rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.05em; text-transform: uppercase; }
-.nav nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem clamp(1.1rem, 2.6vw, 2.25rem); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap; }
+.nav-brand { font: 2rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.04em; text-transform: uppercase; }
+.nav nav { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem clamp(1.1rem, 2.4vw, 2rem); font: 1.3rem/1 var(--font-display), Palatino, serif; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
 .nav nav a { color: rgb(236 231 223 / 0.8); transition: color 0.35s var(--ease); }
 .nav nav a:hover, .nav nav .nav-lang { color: var(--ink); }
 
@@ -159,85 +159,45 @@ body::after {
 .cta-lg { padding: 0.55rem 0.55rem 0.55rem 1.75rem; font-size: 0.875rem; }
 .cta-lg .cta-icon { width: 2.75rem; height: 2.75rem; }
 
-/* ---------- mosaic: the opening, then prints spread on a table ----------
-   Each print is centered on its slot (--x in % of the table, --y in svh, set in Mosaic.tsx);
-   --dx/--dy hold where it has been dragged to. Phones swap in the --*m zig-zag slots. */
-.mosaic { position: relative; padding-top: 5.5rem; }
-.spread {
-  --gx: var(--x0);
-  --gy: var(--y0);
+/* ---------- mosaic: the opening, then three drifting rows (components/Mosaic.tsx) ----------
+   The rows fill the first screen below the nav. Each is a real horizontal scroller (native
+   swipe and momentum) that the component nudges along every frame; scrollbars hidden. */
+.mosaic {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.5rem, 1.2vw, 1rem);
+  height: 100svh;
+  min-height: 30rem;
+  padding: 6rem 0 clamp(0.75rem, 2vh, 1.5rem); /* clears the nav */
+}
+.mrow {
   position: relative;
-  isolation: isolate;
-  height: calc(var(--h) * 1svh);
-  margin-inline: var(--gutter);
-  container-type: inline-size;
-}
-.pic {
-  --px: var(--x); --py: var(--y); --pw: var(--w); --pr: var(--r);
-  --hmax: 22svh;
-  position: absolute;
-  left: calc(var(--px) * 1%);
-  top: calc(var(--py) * 1svh);
-  width: min(calc(var(--pw) * 1vw), calc(var(--hmax) * var(--ar)));
-  transform: translate(-50%, -50%) translate(var(--dx, 0px), var(--dy, 0px)) rotate(calc(var(--pr) * 1deg));
-  touch-action: pan-y;
-  cursor: grab;
-  box-shadow: 0 30px 70px -28px rgb(0 0 0 / 0.95);
-}
-.pic:first-child { --hmax: 42svh; z-index: 1; }
-.pic.is-held { cursor: grabbing; scale: 1.035; box-shadow: 0 60px 110px -35px #000; }
-.is-done .pic {
-  transition:
-    translate 0.7s var(--ease) calc(min(var(--i), 20) * 22ms),
-    opacity 0.35s var(--ease-soft) calc(min(var(--i), 20) * 22ms),
-    scale 0.35s var(--ease),
-    box-shadow 0.35s var(--ease);
-}
-.is-done .pic:first-child { transition: scale 0.35s var(--ease), box-shadow 0.35s var(--ease); } /* appears exactly where the hero landed */
-/* Settled prints drift: a small circle (8 points, too small to see the corners) that starts and
-   ends at the resting spot, plus a faint sway, each at its own pace and phase, half of them the
-   other way round. The hero starts from rest, so the handoff from the intro doesn't jump.
-   On the photo inside, so it never touches the drag position; translate and rotate only. */
-.is-done .pic .photo {
-  animation:
-    orbit calc(var(--od) * 1s) linear calc(var(--i) * -1.7s) infinite,
-    sway calc(var(--od) * 1.4s) ease-in-out calc(var(--i) * -1.1s) infinite;
-}
-.is-done .pic:nth-child(odd) .photo { animation-direction: reverse; }
-.is-done .pic:first-child .photo { animation-delay: 0s; }
-.pic.is-held .photo { animation-play-state: paused; }
-@keyframes orbit {
-  0%, 100% { translate: 0 0; }
-  12.5% { translate: calc(var(--or) * -0.293px) calc(var(--or) * 0.707px); }
-  25% { translate: calc(var(--or) * -1px) calc(var(--or) * 1px); }
-  37.5% { translate: calc(var(--or) * -1.707px) calc(var(--or) * 0.707px); }
-  50% { translate: calc(var(--or) * -2px) 0; }
-  62.5% { translate: calc(var(--or) * -1.707px) calc(var(--or) * -0.707px); }
-  75% { translate: calc(var(--or) * -1px) calc(var(--or) * -1px); }
-  87.5% { translate: calc(var(--or) * -0.293px) calc(var(--or) * -0.707px); }
-}
-@keyframes sway { 0%, 100% { rotate: 0deg; } 25% { rotate: 0.5deg; } 75% { rotate: -0.5deg; } }
-
-.mosaic-foot {
   display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 1rem 2rem;
-  padding: 2rem var(--gutter) 0;
-  transition: opacity 0.9s var(--ease) 0.6s, translate 0.9s var(--ease) 0.6s;
+  gap: clamp(0.5rem, 1.2vw, 1rem);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  cursor: grab;
 }
-.mosaic-lede { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
-.mosaic-lede p { color: var(--dim); }
+.mrow::-webkit-scrollbar { display: none; }
+.mrow.is-dragging { cursor: grabbing; }
+.mrow figure { flex: none; height: 100%; aspect-ratio: var(--ar); cursor: zoom-in; }
+.mrow.is-dragging figure { cursor: grabbing; }
+.mrow .photo { height: 100%; }
+.mrow .photo img { object-fit: cover; }
 
-/* Phases: pending (server HTML) -> intro (dealing) -> settling (hero lands) -> done (the rest spread out). */
+/* Phases: pending (server HTML) -> intro (dealing) -> settling (hero lands) -> done (rows slide in).
+   The hero's own tile appears instantly, exactly where the hero landed; the rest fade in and the
+   lower rows slide in from opposite sides. */
 .mosaic.is-pending > :not(.deal) { opacity: 0; animation: failsafe 0.01s 4s forwards; } /* if JS never runs */
 @keyframes failsafe { to { opacity: 1; } }
-.is-intro .mosaic-foot { opacity: 0; translate: 0 1rem; }
-.is-intro .pic, .is-settling .pic { opacity: 0; }
-.is-intro .pic:not(:first-child), .is-settling .pic:not(:first-child) {
-  translate: calc((var(--gx) - var(--px)) * 1cqw) calc((var(--gy) - var(--py)) * 1svh); /* waiting under the hero */
-  scale: 0.7;
-}
+.is-intro .mrow figure, .is-settling .mrow figure { opacity: 0; }
+.is-intro .mrow:nth-of-type(2), .is-settling .mrow:nth-of-type(2) { translate: -12vw 0; }
+.is-intro .mrow:nth-of-type(3), .is-settling .mrow:nth-of-type(3) { translate: 12vw 0; }
+.is-done .mrow { transition: translate 0.9s var(--ease); }
+.is-done .mrow figure { transition: opacity 0.5s var(--ease-soft) calc(min(var(--j), 8) * 40ms); }
+.is-done .mrow figure[data-hero] { transition: none; }
 
 .deal { position: fixed; inset: 0; z-index: 15; pointer-events: none; }
 .print {
@@ -324,76 +284,8 @@ body::after {
 .sets-next { padding-top: 0; }
 .empty { color: var(--dim); max-width: 42ch; padding-bottom: 20vh; }
 
-/* ---------- reel: set and design pages ---------- */
-.reel { position: relative; height: calc((var(--n) - 1) * 75dvh + 100dvh); } /* 3/4 screen of scroll per photo */
-.reel-stage { position: sticky; top: 0; height: 100dvh; overflow: hidden; }
-.reel-steps { position: absolute; inset: 0; display: grid; grid-auto-rows: 75dvh; align-content: start; pointer-events: none; }
-.frame {
-  --top: 5.25rem;
-  --bottom: 7.75rem;
-  position: absolute;
-  inset: var(--top) var(--gutter) var(--bottom);
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  /* the outgoing photo stays solid until the new one has fully arrived on top of it */
-  transition: opacity 0.3s var(--ease-soft) 0.45s;
-}
-.frame.is-on { z-index: 1; opacity: 1; transition: opacity 0.45s var(--ease-soft); }
-.frame .photo {
-  width: min(100%, calc((100dvh - var(--top) - var(--bottom)) * var(--ar)));
-  translate: 0 2vh;
-  scale: 1.015;
-  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
-  transition: translate 0s 0.8s, scale 0s 0.8s;
-}
-.frame.is-on .photo { translate: 0 0; scale: 1; transition: translate 0.7s var(--ease), scale 0.9s var(--ease); }
-.reel-band {
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: 0;
-  height: 7.75rem;
-  display: grid;
-  align-items: center;
-}
-.reel-band > * { grid-area: 1 / 1; }
-.reel-intro { display: grid; gap: 0.6rem; transition: opacity 0.4s var(--ease), translate 0.6s var(--ease); }
-.reel-intro.is-gone { opacity: 0; translate: 0 -1rem; pointer-events: none; }
-.intro-meta { display: flex; flex-wrap: wrap; gap: 0.25rem 1.75rem; font-size: 0.8125rem; color: var(--dim); }
 .back { color: var(--accent); transition: color 0.4s var(--ease); }
 .back:hover { color: var(--ink); }
-.caption {
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: pre;
-  color: var(--dim);
-  opacity: 0;
-  translate: 0 0.75rem;
-  transition: opacity 0.3s var(--ease), translate 0.5s var(--ease);
-}
-.caption.is-on { opacity: 1; translate: 0 0; transition-delay: 0.15s; }
-.reel-rail {
-  position: absolute;
-  z-index: 2;
-  right: 0.75rem;
-  top: 50%;
-  translate: 0 -50%;
-  display: grid;
-  justify-items: end;
-  gap: clamp(2px, calc(40dvh / var(--n) - 2px), 10px);
-}
-.reel-rail a {
-  display: block;
-  width: 0.9rem;
-  height: 2px;
-  padding-block: 3px;
-  background: rgb(236 231 223 / 0.28) content-box;
-  transition: width 0.7s var(--ease), background-color 0.7s var(--ease);
-}
-.reel-rail a:hover { background-color: rgb(236 231 223 / 0.7); }
-.reel-rail a.is-on { width: 2rem; background-color: var(--accent); }
 
 /* ---------- about ---------- */
 .about {
@@ -649,23 +541,19 @@ html:has(.lightbox[open]) { overflow: hidden; }
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .mrow, .mrow figure, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .sleeve, .lightbox, .lightbox-photo, .hgal-slide .photo, .pic .photo { animation: none !important; }
+  .sleeve, .lightbox, .lightbox-photo, .hgal-slide .photo { animation: none !important; }
 }
 
 /* ---------- mobile ---------- */
 @media (max-width: 767px) {
   .nav { padding-block: 1.1rem; gap: 0.6rem 1rem; }
-  .nav-brand { font-size: 1.2rem; }
-  .nav nav { gap: 0.4rem 0.9rem; font-size: 0.6875rem; letter-spacing: 0.06em; }
+  .nav-brand { font-size: 1.5rem; }
+  .nav nav { gap: 0.35rem 0.85rem; font-size: 1rem; letter-spacing: 0.03em; }
   .display-xl { font-size: clamp(2.5rem, 13vw, 3.5rem); overflow-wrap: normal; } /* "Contrataciones" on one line */
 
-  .mosaic { padding-top: 6rem; } /* the nav may take two lines here */
-  .spread { --gx: var(--xm0); --gy: var(--ym0); height: calc(var(--hm) * 1svh); }
-  .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 16svh; }
-  .pic:first-child { --hmax: 34svh; }
-  .mosaic-foot { align-items: center; }
+  .mosaic { padding-top: 6.25rem; } /* the nav may take two lines here */
   .hgal { --cap: 76vw; } /* leaves the neighbors room to show */
   .crate { --sh: 52svh; grid-template-columns: 1fr; gap: 1rem; }
   .sleeve { width: min(78%, calc(var(--sh) * var(--ar))); }
@@ -676,8 +564,6 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .stack { width: min(calc(60dvh * var(--ar)), 88%); }
   .set-block { padding-block: 4rem; }
 
-  .frame { --top: 4.5rem; --bottom: 7rem; }
-  .reel-rail { display: none; }
 
   .about, .footer { grid-template-columns: 1fr; align-items: start; }
 }
