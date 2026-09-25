@@ -227,29 +227,25 @@ body::after {
 .deal.is-landing .deal-flash { animation: flash 0.9s var(--ease-soft); }
 @keyframes flash { 25% { opacity: 0.22; } }
 
-/* ---------- sets: one per screen, cover on a fanned stack ---------- */
+/* ---------- work: a grid of cards, each a cover on a fanned stack (components/SetBlock.tsx) ----------
+   The stack sits in a fixed 5:4 frame, sized from the frame (container units) and the cover's
+   shape, so cards line up whatever the photo. `.is-row` lays a card out sideways. */
 .sets { padding: clamp(6rem, 18vh, 12rem) var(--gutter) 0; }
-.sets-title { margin-bottom: clamp(2rem, 8vh, 6rem); }
-.set-block { padding-block: clamp(4rem, 14vh, 10rem); }
-.set-link {
+.sets-title { margin-bottom: clamp(2rem, 6vh, 4rem); }
+.sets-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
-  align-items: end;
-  gap: clamp(2rem, 6vw, 6rem);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: clamp(2.5rem, 5vw, 4.5rem) clamp(1.5rem, 3vw, 3rem);
+  padding-bottom: clamp(3rem, 8vh, 6rem);
 }
-.is-flip .set-link { grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr); }
-.is-flip .stack { order: 2; }
-.stack {
-  position: relative;
-  isolation: isolate;
-  justify-self: center;
-  width: min(calc(min(72dvh, 46rem) * var(--ar)), 100%);
-}
+.set-link { display: grid; gap: 1.25rem; }
+.stack { display: grid; place-items: center; aspect-ratio: 5 / 4; container-type: size; }
+.stack-inner { position: relative; isolation: isolate; width: min(80cqw, calc(80cqh * var(--ar))); }
 .stack-cover {
   position: relative;
   z-index: 1;
   width: 100%;
-  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
+  box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.95);
   transition: translate 0.6s var(--ease);
 }
 .stack-peek {
@@ -268,19 +264,20 @@ body::after {
   box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
   transition: translate 0.9s var(--ease), rotate 0.9s var(--ease);
 }
-.stack-peek:nth-child(2) { --tx: 16%; --ty: 2%; --rot: 7deg; }
+.stack-peek:nth-child(2) { --tx: 14%; --ty: 2%; --rot: 7deg; }
 .stack-peek:nth-child(3) { --tx: -8%; --ty: 4%; --rot: -4deg; }
-.is-flip .stack-peek:nth-child(1) { --tx: -9%; --rot: -4deg; }
-.is-flip .stack-peek:nth-child(2) { --tx: -16%; --rot: -7deg; }
-.is-flip .stack-peek:nth-child(3) { --tx: 8%; --rot: 4deg; }
 
-.set-info { display: grid; justify-items: start; gap: 1rem; padding-bottom: 0.5rem; }
-.set-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--accent); }
-.set-name { font-size: clamp(2.75rem, 5.5vw, 5.5rem); transition: color 0.6s var(--ease); }
+.set-info { display: grid; justify-items: start; align-content: start; gap: 0.5rem; }
+.set-label { font-size: 0.75rem; letter-spacing: 0.1em; color: var(--accent); }
+.set-name { font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 0.95; transition: color 0.6s var(--ease); }
 .set-link:hover .set-name { color: var(--accent); }
 .set-details { font-size: 0.8125rem; color: var(--dim); white-space: pre-wrap; }
-.set-info .cta { margin-top: 0.75rem; }
-.sets-next { padding-top: 0; }
+.set-count { display: none; font-size: 0.8125rem; color: var(--dim); }
+.set-info .cta { margin-top: 0.6rem; }
+/* Sideways: thumbnail left, text right. */
+.set-block.is-row .set-link { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); align-items: center; gap: clamp(1rem, 3vw, 2.5rem); }
+.sets-next { padding-top: clamp(2rem, 6vh, 4rem); padding-bottom: clamp(3rem, 8vh, 5rem); }
+.sets-next .set-block { max-width: 44rem; }
 .empty { color: var(--dim); max-width: 42ch; padding-bottom: 20vh; }
 
 .back { color: var(--accent); transition: color 0.4s var(--ease); }
@@ -304,13 +301,14 @@ body::after {
   box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
 }
 
-/* ---------- set page intro ---------- */
+/* ---------- set page intro: title and details on one line, so the photos start high ---------- */
 .set-intro {
-  padding: 6rem var(--gutter) 2rem;
-  max-width: 100%;
-}
-.set-intro h1 {
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  padding: clamp(6rem, 14vh, 8.5rem) var(--gutter) 1rem;
 }
 .intro-meta {
   display: flex;
@@ -329,15 +327,15 @@ body::after {
 
 /* ---------- horizontal gallery: set page photos ---------- */
 .hgal {
-  --gh: min(62svh, 48rem); /* height of the photo in the middle */
+  --gh: min(58svh, 44rem); /* height of the photo in the middle: intro, photos and arrows fit one screen */
   --cap: 84vw; /* ...and its widest */
-  padding: 1rem 0 3rem;
+  padding: 0.5rem 0 1rem;
 }
 .hgal-track {
   display: flex;
   align-items: center;
   gap: clamp(0.75rem, 2vw, 2rem);
-  height: calc(var(--gh) + 4rem);
+  height: calc(var(--gh) + 2.5rem);
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -561,10 +559,14 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .sleeve { width: min(78%, calc(var(--sh) * var(--ar))); }
   .crate-controls { grid-auto-flow: column; justify-content: space-between; align-items: center; }
 
-  .set-link, .is-flip .set-link { grid-template-columns: 1fr; }
-  .is-flip .stack { order: 0; }
-  .stack { width: min(calc(60dvh * var(--ar)), 88%); }
-  .set-block { padding-block: 4rem; }
+  /* Every card goes sideways on phones: five works in about a screen and a half. */
+  .sets-grid { gap: 1.75rem; }
+  .set-block .set-link { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); align-items: center; gap: 1rem; }
+  .set-name { font-size: 1.5rem; }
+  .set-info .cta { display: none; }
+  .set-count { display: block; }
+  .set-intro { padding-top: 7rem; } /* clears a two-line nav */
+  .hgal { --gh: 48svh; }
 
 
   .footer { grid-template-columns: 1fr; align-items: start; }
