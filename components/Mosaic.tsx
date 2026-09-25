@@ -14,7 +14,6 @@ const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${
 const PHONE = '(max-width: 767px)' // phones get four shorter rows instead of three
 const COPIES = 3 // each row is its photos three times over; it drifts within the middle copy and wraps
 const SPEEDS = [26, 21, 31, 24] // px per second, per row: never quite in step, so their gaps never line up for long
-const RESUME = 1400 // ms after the visitor lets go before a row drifts again
 const DEALT = 14 // prints flicked onto the screen in the intro
 
 // Once per page load: coming back from another page skips the intro...
@@ -31,8 +30,8 @@ const period = (row: HTMLElement) => {
 
 // Opening sequence, on every page load: every main photo is dealt onto the screen like a stack
 // of prints, fast; the last one lands, fills the room, then settles into the top row while the
-// three rows slide in. Rows then drift in alternating directions, forever. Swipe, scroll or drag
-// one and it follows you, then drifts on from there; tap a photo to open it.
+// rows slide in. Rows then drift on their own in alternating directions, forever (visitors can't
+// scroll them); tap a photo to open it, and it grows out of its tile and shrinks back into it.
 export function Mosaic({ photos, title, alt, label, labels }: {
   photos: P[]
   title: string
@@ -46,7 +45,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   const rowRefs = useRef<(HTMLDivElement | null)[]>([])
   const deal = useRef<HTMLDivElement>(null)
   const hero = useRef<HTMLImageElement>(null)
-  const moved = useRef(false) // a mouse drag just happened, so the click that ends it isn't a tap
+  const section = useRef<HTMLElement>(null)
+  // How far each row's track has slid (px): the drift is a transform, so it's sub-pixel smooth.
+  const pos = useRef<number[]>([])
+  const opened = useRef(open)
+  opened.current = open
   // The server can't know the screen, so it renders three rows; a phone switches to four before
   // anything shows (the mosaic stays hidden until its intro starts).
   const [n, setN] = useState(3)
@@ -59,20 +62,26 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   }, [])
   const rows = Array.from({ length: n }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % n === k))
 
+  const place = (k: number) => {
+    const track = rowRefs.current[k]?.firstElementChild as HTMLElement | undefined
+    if (track) track.style.transform = `translate3d(${-pos.current[k]}px, 0, 0)`
+  }
+
   // Before paint: put each row where it was left, or (first time) the hero in the middle of the top row.
   useLayoutEffect(() => {
     rowRefs.current.forEach((el, k) => {
       if (!el) return
       const W = period(el)
-      if (saved?.length === n) el.scrollLeft = W + saved[k]
+      if (saved?.length === n) pos.current[k] = W + saved[k]
       else if (k === 0) {
         const h = el.querySelector<HTMLElement>('[data-hero]')!
-        el.scrollLeft = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
+        pos.current[k] = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
       } else {
         // The lower rows start staggered, like bricks, so their gaps don't line up.
         const first = el.querySelector<HTMLElement>('figure')!
-        el.scrollLeft = W + first.offsetWidth * [0, 0.5, 0.1, 0.75][k]
+        pos.current[k] = W + first.offsetWidth * [0, 0.5, 0.1, 0.75][k]
       }
+      place(k)
     })
   }, [n])
 
@@ -140,41 +149,15 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     return () => { cancelled = true; events.forEach((e) => removeEventListener(e, skip)) }
   }, [playing])
 
-  // The drift. Rows are real scrollers, so swiping, trackpads and momentum are native. The drift
-  // itself is a sub-pixel slide of the row's track (scroll positions snap to whole pixels, which
-  // stutters at this speed); every so often, and whenever the visitor takes hold, the slide is
-  // folded into the scroll position in whole pixels, which looks identical. It waits for the
-  // intro's hero to finish landing (moving its tile sooner makes the handoff jump), then eases in.
+  // The drift: every frame each row's track slides a little, wrapping within its copies (every copy
+  // looks the same, so jumping one is invisible). It pauses while a photo is open, so the photo can
+  // shrink back into its tile. It waits for the intro's hero to finish landing (moving its tile
+  // sooner makes the handoff jump), then eases up to speed.
   useEffect(() => {
     if (phase !== 'done' || dealing) return
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
-    const tracks = els.map((el) => el.firstElementChild as HTMLElement)
-    // d: how far the track has slid on top of the scroll position (px, positive = content moved left).
-    const state = els.map(() => ({ d: 0, until: 0 }))
-    const slide = (k: number) => (tracks[k].style.transform = `translate3d(${-state[k].d}px, 0, 0)`)
-    // Fold the slide into the scroll position, keeping that within the middle copy.
-    const fold = (k: number) => {
-      const el = els[k], s = state[k], W = period(el)
-      let target = el.scrollLeft + s.d
-      if (target < W * 0.5) target += W // every copy looks the same, so jumping one is invisible
-      else if (target > W * 1.5) target -= W
-      el.scrollLeft = Math.round(target)
-      s.d = target - el.scrollLeft
-      slide(k)
-    }
-    const hold = (k: number) => () => {
-      if (performance.now() >= state[k].until) fold(k) // hand over exactly what's on screen
-      state[k].until = performance.now() + RESUME
-    }
-    // Scrolling that follows a touch (momentum, a mouse drag) keeps the hold; folding doesn't.
-    const follow = (k: number) => () => { if (performance.now() < state[k].until) state[k].until = performance.now() + RESUME }
-    const off = els.flatMap((el, k) => {
-      const on = [['pointerdown', hold(k)], ['wheel', hold(k)], ['touchstart', hold(k)], ['scroll', follow(k)]] as const
-      on.forEach(([e, f]) => el.addEventListener(e, f, { passive: true }))
-      return on.map(([e, f]) => () => el.removeEventListener(e, f))
-    })
-
+    const widths = els.map(period)
     let raf = 0, last = performance.now()
     const start = last
     const loop = (now: number) => {
@@ -182,22 +165,26 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       const ease = Math.min(1, (now - start) / 1500)
       const dt = Math.min(0.05, (now - last) / 1000) * ease * ease
       last = now
+      if (opened.current !== null) return
       els.forEach((_, k) => {
-        const s = state[k]
-        if (now < s.until) return // the visitor has it
-        s.d += SPEEDS[k] * dt * (k % 2 ? -1 : 1)
-        if (Math.abs(s.d) > 48) fold(k)
-        else slide(k)
+        const W = widths[k]
+        let x = pos.current[k] + SPEEDS[k] * dt * (k % 2 ? -1 : 1)
+        if (x < W * 0.5) x += W
+        else if (x > W * 1.5) x -= W
+        pos.current[k] = x
+        place(k)
       })
     }
-    if (!still) raf = requestAnimationFrame(loop)
+    raf = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(raf)
+  }, [phase, dealing, n])
 
-    return () => {
-      cancelAnimationFrame(raf)
-      off.forEach((f) => f())
-      saved = els.map((el, k) => { const W = period(el); return (((el.scrollLeft + state[k].d - W) % W) + W) % W })
-    }
-  }, [phase, dealing, photos, n])
+  // Remember where each row was, for coming back to this page (widths measured now: by the time
+  // this cleanup runs the rows are already off the page).
+  useEffect(() => {
+    const widths = (rowRefs.current.filter(Boolean) as HTMLDivElement[]).map(period)
+    return () => { saved = widths.map((W, k) => (((pos.current[k] - W) % W) + W) % W) }
+  }, [n])
 
   // The photo passing the middle of the middle row tints the room. Set up on mount, so its first
   // recolor (which restyles the page) isn't at the same moment the drift starts.
@@ -205,49 +192,32 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     const row = rowRefs.current[1] // second from the top
     if (!row) return
     const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
+      for (const e of entries) if (e.isIntersecting && opened.current === null) setGel(photos[Number((e.target as HTMLElement).dataset.i)].gel)
     }, { root: row, rootMargin: '0px -49.5% 0px -49.5%' })
     row.querySelectorAll('figure').forEach((f) => io.observe(f))
     return () => io.disconnect()
   }, [photos, n])
 
-  // Mouse: drag a row sideways (touch and trackpads scroll it natively). It only becomes a drag
-  // past a few pixels; capturing the pointer any sooner would send the click to the row instead
-  // of the photo, and a plain click has to open the photo.
-  const drag = (e: React.PointerEvent<HTMLDivElement>) => {
-    moved.current = false
-    if (e.pointerType !== 'mouse' || e.button !== 0) return
-    const el = e.currentTarget
-    const x0 = e.clientX, left0 = el.scrollLeft, id = e.pointerId
-    const move = (ev: PointerEvent) => {
-      if (!moved.current) {
-        if (Math.abs(ev.clientX - x0) <= 5) return
-        moved.current = true
-        el.setPointerCapture(id)
-        el.classList.add('is-dragging')
-      }
-      el.scrollLeft = left0 - (ev.clientX - x0)
-    }
-    const up = () => {
-      el.classList.remove('is-dragging')
-      el.removeEventListener('pointermove', move)
-      el.removeEventListener('pointerup', up)
-      el.removeEventListener('pointercancel', up)
-    }
-    el.addEventListener('pointermove', move)
-    el.addEventListener('pointerup', up)
-    el.addEventListener('pointercancel', up)
+  // The tile an open photo grows from and shrinks back into: the on-screen copy nearest the middle.
+  const tile = (i: number) => {
+    let best: HTMLElement | null = null, far = Infinity
+    section.current?.querySelectorAll<HTMLElement>(`figure[data-i="${i}"]`).forEach((f) => {
+      const r = f.getBoundingClientRect()
+      if (r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight) return
+      const d = Math.abs(r.left + r.width / 2 - innerWidth / 2)
+      if (d < far) { far = d; best = f }
+    })
+    return best
   }
 
   return (
-    <section className={`mosaic is-${phase}`} aria-label={label} style={{ '--rows': n } as React.CSSProperties}>
+    <section ref={section} className={`mosaic is-${phase}`} aria-label={label} style={{ '--rows': n } as React.CSSProperties}>
       <h1 className="sr-only">{title}</h1>
       {rows.map((row, k) => (
         <div
           key={k}
           ref={(el) => { rowRefs.current[k] = el }}
           className="mrow"
-          onPointerDown={drag}
           onDragStart={(e) => e.preventDefault()}
         >
           <div className="mtrack">
@@ -261,7 +231,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
                 aria-hidden={c !== 1 || undefined}
                 tabIndex={c === 1 ? 0 : -1}
                 onKeyDown={(e) => e.key === 'Enter' && setOpen(i)}
-                onClick={() => !moved.current && setOpen(i)}
+                onClick={() => setOpen(i)}
               >
                 <Photo p={p} alt={alt} sizes="(min-width: 768px) 30vw, 90vw" priority={c === 1 && j < 5} />
               </figure>
@@ -270,7 +240,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
           </div>
         </div>
       ))}
-      <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
+      <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} origin={tile} />
 
       {dealing && (
         <div ref={deal} className="deal" aria-hidden>

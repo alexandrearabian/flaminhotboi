@@ -173,18 +173,11 @@ body::after {
 .mrow {
   position: relative;
   display: flex;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-  cursor: grab;
+  overflow: hidden; /* rows only move on their own */
   gap: clamp(1rem, 2.2vw, 2rem);
 }
-.mrow::-webkit-scrollbar { display: none; }
 .mtrack { flex: none; display: flex; gap: inherit; height: 100%; will-change: transform; }
-.mrow.is-dragging { cursor: grabbing; }
 .mrow figure { flex: none; height: 100%; aspect-ratio: var(--ar); cursor: zoom-in; }
-.mrow.is-dragging figure { cursor: grabbing; }
 .mrow .photo { height: 100%; }
 .mrow .photo img { object-fit: cover; }
 
@@ -469,7 +462,7 @@ body::after {
   margin: 0;
   padding: 0;
   border: 0;
-  background: rgb(5 5 5 / 0.97);
+  background: transparent;
   color: var(--ink);
   touch-action: pinch-zoom; /* horizontal swipes reach the page's handlers */
   overscroll-behavior: contain;
@@ -478,16 +471,15 @@ body::after {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   place-items: center;
-  animation: lb-in 0.3s var(--ease-soft);
 }
 .lightbox::backdrop { background: transparent; }
-@keyframes lb-in { from { opacity: 0; } }
+/* The dark room behind the photo: its own layer, so it can fade while the photo moves. */
+.lightbox-shade { position: fixed; inset: 0; z-index: -1; background: rgb(5 5 5 / 0.97); }
 .lightbox-photo {
   width: min(94vw, calc((100svh - 7rem) * var(--ar)));
+  transform-origin: 0 0; /* grows out of / shrinks into its tile from the top-left corner */
   cursor: zoom-out;
-  animation: lb-photo 0.45s var(--ease);
 }
-@keyframes lb-photo { from { opacity: 0; scale: 0.97; } }
 .lightbox-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0 1.25rem; }
 .lightbox-count { min-width: 4.5rem; text-align: center; font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--dim); font-variant-numeric: tabular-nums; }
 html:has(.lightbox[open]) { overflow: hidden; }
@@ -545,7 +537,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
   html { scroll-behavior: auto; }
   .mrow, .mrow figure, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .sleeve, .lightbox, .lightbox-photo, .hgal-slide .photo { animation: none !important; }
+  .sleeve, .hgal-slide .photo { animation: none !important; }
 }
 
 /* ---------- mobile ---------- */

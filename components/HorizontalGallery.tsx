@@ -50,10 +50,10 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
     return () => removeEventListener('keydown', onKey)
   })
 
-  const center = (i: number) => {
+  const center = (i: number, behavior: ScrollBehavior = 'smooth') => {
     const t = track.current!
     const el = t.children[Math.max(0, Math.min(photos.length - 1, i))] as HTMLElement
-    t.scrollTo({ left: el.offsetLeft + el.offsetWidth / 2 - t.clientWidth / 2, behavior: 'smooth' })
+    t.scrollTo({ left: el.offsetLeft + el.offsetWidth / 2 - t.clientWidth / 2, behavior })
   }
 
   const endDrag = () => {
@@ -105,7 +105,16 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
         <span className="hgal-count">{active + 1} / {photos.length}</span>
         <button type="button" onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label={labels.next}><Arrow flip /></button>
       </div>
-      <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
+      {/* Stepping through the open photo keeps the gallery under it in step, so closing shrinks
+          the photo back into its own slide. */}
+      <Lightbox
+        photos={photos}
+        alt={alt}
+        index={open}
+        onIndex={(i) => { setOpen(i); if (i !== null) center(i, 'instant') }}
+        labels={labels}
+        origin={(i) => track.current?.children[i]?.querySelector<HTMLElement>('.photo')}
+      />
     </section>
   )
 }
