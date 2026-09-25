@@ -15,6 +15,7 @@ export function Nav({ lang, hasDesign }: { lang: Lang; hasDesign: boolean }) {
         <Link href={`/${lang}#setlist`} transitionTypes={['nav-back']}>{t[lang].setlist}</Link>
         {hasDesign && <Link href={`/${lang}#design`} transitionTypes={['nav-back']}>{t[lang].design}</Link>}
         <Link href={`/${lang}/about`} transitionTypes={['nav-forward']}>{t[lang].about}</Link>
+        <a href="https://ramitoto.myportfolio.com/" target="_blank" rel="noopener noreferrer">{t[lang].advertising}</a>
         <Link href={path} hrefLang={other} lang={other} className="nav-lang">
           {other.toUpperCase()}
         </Link>
