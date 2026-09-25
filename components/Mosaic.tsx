@@ -13,7 +13,7 @@ const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${
 
 const ROWS = 3
 const COPIES = 3 // each row is its photos three times over; it drifts within the middle copy and wraps
-const SPEED = 26 // px per second
+const SPEEDS = [26, 21, 31] // px per second, per row: never quite in step, so their gaps never line up for long
 const RESUME = 1400 // ms after the visitor lets go before a row drifts again
 const DEALT = 14 // prints flicked onto the screen in the intro
 
@@ -58,7 +58,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       else if (k === 0) {
         const h = el.querySelector<HTMLElement>('[data-hero]')!
         el.scrollLeft = h.offsetLeft + h.offsetWidth / 2 - el.clientWidth / 2
-      } else el.scrollLeft = W
+      } else {
+        // The lower rows start half a photo apart, like bricks, so their gaps don't line up.
+        const first = el.querySelector<HTMLElement>('figure')!
+        el.scrollLeft = W + (k === 1 ? first.offsetWidth * 0.5 : first.offsetWidth * 0.1)
+      }
     })
   }, [])
 
@@ -171,7 +175,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       els.forEach((_, k) => {
         const s = state[k]
         if (now < s.until) return // the visitor has it
-        s.d += SPEED * dt * (k % 2 ? -1 : 1)
+        s.d += SPEEDS[k] * dt * (k % 2 ? -1 : 1)
         if (Math.abs(s.d) > 48) fold(k)
         else slide(k)
       })
@@ -197,16 +201,21 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     return () => io.disconnect()
   }, [photos])
 
-  // Mouse: drag a row sideways (touch and trackpads scroll it natively).
+  // Mouse: drag a row sideways (touch and trackpads scroll it natively). It only becomes a drag
+  // past a few pixels; capturing the pointer any sooner would send the click to the row instead
+  // of the photo, and a plain click has to open the photo.
   const drag = (e: React.PointerEvent<HTMLDivElement>) => {
     moved.current = false
     if (e.pointerType !== 'mouse' || e.button !== 0) return
     const el = e.currentTarget
-    const x0 = e.clientX, left0 = el.scrollLeft
-    el.setPointerCapture(e.pointerId)
-    el.classList.add('is-dragging')
+    const x0 = e.clientX, left0 = el.scrollLeft, id = e.pointerId
     const move = (ev: PointerEvent) => {
-      if (Math.abs(ev.clientX - x0) > 5) moved.current = true
+      if (!moved.current) {
+        if (Math.abs(ev.clientX - x0) <= 5) return
+        moved.current = true
+        el.setPointerCapture(id)
+        el.classList.add('is-dragging')
+      }
       el.scrollLeft = left0 - (ev.clientX - x0)
     }
     const up = () => {
