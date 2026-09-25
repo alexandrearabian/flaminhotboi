@@ -112,7 +112,7 @@ body::after {
 
 /* ---------- nav: plain text along the top, staying put while the page scrolls ----------
    No container: a soft dark shadow behind the letters keeps them legible over any photo, and
-   only the links take clicks, so the photos under the empty stretch can still be dragged. */
+   only the links take clicks, so the photos under the empty stretch can still be clicked. */
 .nav {
   position: fixed;
   pointer-events: none;
@@ -530,7 +530,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
 .footer-base a:hover { color: var(--ink); }
 
 /* ---------- set reveal: one-shot, when a set is a third on screen (components/Reveal.tsx) ---------- */
-@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+@media (scripting: enabled) {
   /* The only scroll animation: the photos behind ease a little way out from under the cover and stay. */
   .set-block:not(.is-in) .stack-peek { translate: -50% -50%; rotate: 0deg; }
   .set-block.is-in .stack-peek { transition-delay: calc(var(--k) * 90ms); }
@@ -546,12 +546,6 @@ html:has(.lightbox[open]) { overflow: hidden; }
 ::view-transition-new(.nav-back) { --slide: -56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
 
 /* ---------- reduced motion ---------- */
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .mrow, .mrow figure, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  .sleeve, .hgal-slide .photo { animation: none !important; }
-}
 
 /* ---------- mobile ---------- */
 @media (max-width: 767px) {

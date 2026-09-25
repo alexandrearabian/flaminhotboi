@@ -41,16 +41,14 @@ export function Lightbox({ photos, alt, index, onIndex, labels, origin }: {
     const d = ref.current!
     if (index === null) { if (d.open) d.close(); return }
     setGel(photos[index].gel)
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const f = fig.current!
     if (d.open) {
       // Stepping to the next photo: a quick fade.
-      if (!still) f.animate([{ opacity: 0, scale: 0.98 }, { opacity: 1, scale: 1 }], { duration: 320, easing: EASE })
+      f.animate([{ opacity: 0, scale: 0.98 }, { opacity: 1, scale: 1 }], { duration: 320, easing: EASE })
       return
     }
     const tile = onScreen(from.current?.(index)) // measured before the page locks its scroll
     d.showModal()
-    if (still) return
     shade.current!.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 380, easing: 'ease-out' })
     bar.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 200, easing: 'ease-out', fill: 'backwards' })
     if (tile) f.animate([{ transform: onto(tile, f.getBoundingClientRect()) }, { transform: 'none' }], { duration: 520, easing: EASE })
@@ -63,7 +61,7 @@ export function Lightbox({ photos, alt, index, onIndex, labels, origin }: {
     if (closing.current || !d.open) return
     closing.current = true
     const anims: Animation[] = []
-    if (f && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (f) {
       const tile = index === null ? null : onScreen(from.current?.(index))
       const opts = { duration: 460, easing: EASE, fill: 'forwards' as const }
       anims.push(shade.current!.animate([{ opacity: 1 }, { opacity: 0 }], { ...opts, easing: 'ease-in-out' }))

@@ -25,7 +25,6 @@ export function Atmosphere() {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const initial = parse(getComputedStyle(document.documentElement).getPropertyValue('--gel')) ?? [34, 48, 195]
     const cur: RGB = [...initial]
     let target: RGB = [...initial]
@@ -64,7 +63,6 @@ export function Atmosphere() {
 
     const onGel = (e: Event) => {
       target = parse((e as CustomEvent<string>).detail) ?? target
-      if (still) { cur.splice(0, 3, ...target); draw(0) }
     }
     addEventListener('gel', onGel)
 
@@ -77,8 +75,7 @@ export function Atmosphere() {
       cur.forEach((v, i) => (cur[i] += (target[i] - v) * 0.05)) // ~2.5s fade to the new stage color
       draw(ms / 1000)
     }
-    if (still) draw(0)
-    else raf = requestAnimationFrame(loop)
+    raf = requestAnimationFrame(loop)
 
     return () => {
       cancelAnimationFrame(raf)

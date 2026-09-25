@@ -92,13 +92,14 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     })
   }, [n])
 
-  // Decide once on mount whether to play the intro.
+  // Decide once whether to play the intro, but only once a phone has switched to its four rows:
+  // measuring the hero's tile before that would aim the landing at the three-row size.
   useEffect(() => {
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (introPlayed || still || scrollY > innerHeight / 2 || photos.length < 2) return setPhase('done')
+    if (phase !== 'pending' || (matchMedia(PHONE).matches ? 4 : 3) !== n) return
+    if (introPlayed || scrollY > innerHeight / 2 || photos.length < 2) return setPhase('done')
     setDealing(true)
     setPhase('intro')
-  }, [photos.length])
+  }, [photos.length, n, phase])
   useEffect(() => { if (phase === 'done') introPlayed = true }, [phase])
 
   // The choreography. Any wheel, touch, key or click skips straight to the rows.
@@ -162,6 +163,13 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       if (cancelled) return
       setPhase('done')
       await settle
+      // One last look before handing over: if the tile has moved or resized since (anything that
+      // shifted the layout), glide onto it rather than letting the swap snap.
+      const end = heroTile().getBoundingClientRect()
+      if (Math.abs(end.left - now.left) + Math.abs(end.top - now.top) + Math.abs(end.width - now.width) > 1) {
+        const fix = T(end.left + end.width / 2 - (r.left + r.width / 2), end.top + end.height / 2 - (r.top + r.height / 2), end.width / r.width)
+        await img.animate([{ transform: land }, { transform: fix }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
+      }
       setDealing(false)
     }
     run().catch(() => {}) // animations reject if the intro is skipped mid-flight
@@ -174,7 +182,6 @@ export function Mosaic({ photos, title, alt, label, labels }: {
   // sooner makes the handoff jump), then eases up to speed.
   useEffect(() => {
     if (phase !== 'done' || dealing) return
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
     const widths = els.map(period)
     let raf = 0, last = performance.now()
