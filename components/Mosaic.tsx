@@ -47,6 +47,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
   labels: Labels
 }) {
   const [phase, setPhase] = useState<Phase>('pending')
+  const [dealing, setDealing] = useState(false) // the intro's overlay; outlives 'settling' by a beat
   const [open, setOpen] = useState<number | null>(null)
   const spread = useRef<HTMLDivElement>(null)
   const deal = useRef<HTMLDivElement>(null)
@@ -58,6 +59,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     const atTop = spread.current!.getBoundingClientRect().top < innerHeight
     if (introPlayed || still || !atTop || photos.length < 2) return setPhase('done')
+    setDealing(true)
     setPhase('intro')
   }, [photos.length])
   useEffect(() => { if (phase === 'done') introPlayed = true }, [phase])
@@ -67,7 +69,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
   useEffect(() => {
     if (!playing) return
     let cancelled = false
-    const skip = () => { cancelled = true; setPhase('done') }
+    const skip = () => { cancelled = true; setDealing(false); setPhase('done') }
     const events = ['wheel', 'touchstart', 'keydown', 'pointerdown'] as const
     events.forEach((e) => addEventListener(e, skip, { once: true, passive: true }))
 
@@ -103,9 +105,15 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
       if (cancelled) return
 
       setPhase('settling')
-      await img.animate([{ transform: T(dx, dy, sCover) }, { transform: 'none' }],
+      const settle = img.animate([{ transform: T(dx, dy, sCover) }, { transform: 'none' }],
         { duration: 1150, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
-      if (!cancelled) setPhase('done')
+      // The curve has a long tail: by now the hero looks landed, so the rest start spreading out
+      // from under it while it finishes; the overlay goes once it's exactly in place.
+      await wait(420)
+      if (cancelled) return
+      setPhase('done')
+      await settle
+      setDealing(false)
     }
     run().catch(() => {}) // animations reject if the intro is skipped mid-flight
     return () => { cancelled = true; events.forEach((e) => removeEventListener(e, skip)) }
@@ -193,7 +201,7 @@ export function Mosaic({ photos, title, footer, alt, label, labels }: {
       <div className="mosaic-foot">{footer}</div>
       <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
 
-      {playing && (
+      {dealing && (
         <div ref={deal} className="deal" aria-hidden>
           {photos.slice(1).map((p, i) => (
             <img key={p.id} className="print" src={`/photos/${p.id}/${p.widths[0]}.webp`} alt="" style={{ ...scatter(i), '--ar': p.w / p.h } as React.CSSProperties} />

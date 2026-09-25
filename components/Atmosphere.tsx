@@ -61,11 +61,14 @@ export function Atmosphere() {
     }
     addEventListener('gel', onGel)
 
-    let raf = 0
+    // 30fps is plenty for beams this slow, and every redraw makes the frosted nav re-blur what's behind it.
+    let raf = 0, last = 0
     const loop = (ms: number) => {
-      cur.forEach((v, i) => (cur[i] += (target[i] - v) * 0.025)) // ~2.5s fade to the new stage color
-      draw(ms / 1000)
       raf = requestAnimationFrame(loop)
+      if (ms - last < 32) return
+      last = ms
+      cur.forEach((v, i) => (cur[i] += (target[i] - v) * 0.05)) // ~2.5s fade to the new stage color
+      draw(ms / 1000)
     }
     if (still) draw(0)
     else raf = requestAnimationFrame(loop)

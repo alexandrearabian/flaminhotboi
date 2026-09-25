@@ -8,7 +8,7 @@ import { isLang, langs, site, t } from '@/lib/i18n'
 import { design, featured } from '@/lib/sets'
 import '../globals.css'
 
-// Display only. Body copy stays on the system mono in globals.css.
+// Display only. Body copy is Helvetica (globals.css).
 const display = localFont({ src: '../../fonts/Parafina-RegularL.otf', variable: '--font-display' })
 
 export const dynamicParams = false
@@ -33,7 +33,7 @@ export default async function Layout({ children, params }: { children: React.Rea
   const { lang } = await params
   if (!isLang(lang)) notFound()
   return (
-    <html lang={lang} className={display.variable} style={{ '--gel': featured[0]?.gel } as React.CSSProperties}>
+    <html lang={lang} className={display.variable} data-scroll-behavior="smooth" style={{ '--gel': featured[0]?.gel } as React.CSSProperties}>
       <body>
         <a href="#main" className="skip">Skip to content</a>
         <Atmosphere />

@@ -5,8 +5,14 @@ import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
 
-// Horizontal scroll gallery for set pages: photos scroll left-right within a sticky section,
-// neighbors peek on sides, click/drag/arrows to navigate. Tap the center photo to open it.
+// Set pages: one photo large in the middle, its neighbors shrunk toward it at the sides.
+// Swipe, drag, click a neighbor or use the arrows to move; tap the one in the middle to open it.
+const Arrow = ({ flip }: { flip?: boolean }) => (
+  <svg width="40" height="14" viewBox="0 0 40 14" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden style={flip ? { scale: '-1 1' } : undefined}>
+    <path d="M39 7H1M7 1 1 7l6 6" />
+  </svg>
+)
+
 export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[]; alt: string; title: string; labels: Labels }) {
   const [active, setActive] = useState(0)
   const [open, setOpen] = useState<number | null>(null)
@@ -22,7 +28,7 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
         setActive(i)
         setGel(photos[i].gel)
       }
-    }, { root: track.current, rootMargin: '0px -30% 0px -30%' })
+    }, { root: track.current, rootMargin: '0px -49% 0px -49%' }) // whichever photo crosses the center line
     track.current!.querySelectorAll('.hgal-slide').forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [photos])
@@ -46,6 +52,7 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
       <div
         ref={track}
         className="hgal-track"
+        style={{ '--ar0': photos[0].w / photos[0].h, '--arN': photos.at(-1)!.w / photos.at(-1)!.h } as React.CSSProperties}
         tabIndex={0}
         aria-label={title}
         onKeyDown={(e) => e.key === 'Enter' && setOpen(active)}
@@ -68,18 +75,18 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
           <figure
             key={p.id}
             data-i={i}
-            className={`hgal-slide${i === active ? ' is-on' : ''}`}
+            className={`hgal-slide ${i === active ? 'is-on' : i < active ? 'is-before' : 'is-after'}`}
             style={{ '--ar': p.w / p.h } as React.CSSProperties}
             onClick={() => !drag.current.moved && (i === active ? setOpen(i) : center(i))}
           >
-            <Photo p={p} alt={alt} sizes="(min-width: 768px) 70vw, 90vw" priority={i === 0} />
+            <Photo p={p} alt={alt} sizes="(min-width: 768px) 60vw, 84vw" priority={i === 0} />
           </figure>
         ))}
       </div>
       <div className="hgal-controls">
-        <button onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>{' ← '}</button>
+        <button type="button" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}><Arrow /></button>
         <span className="hgal-count">{active + 1} / {photos.length}</span>
-        <button onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label={labels.next}>{' → '}</button>
+        <button type="button" onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label={labels.next}><Arrow flip /></button>
       </div>
       <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
     </section>

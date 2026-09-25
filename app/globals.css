@@ -22,7 +22,7 @@
 * { box-sizing: border-box; }
 html, main, footer { overflow-x: clip; } /* stacks and rotated prints must never widen the page */
 html {
-  scroll-behavior: smooth; /* in-page links only; wheel and touch scrolling stay native */
+  scroll-behavior: smooth; /* in-page links only (data-scroll-behavior tells Next to jump on page changes) */
   background: var(--bg);
   color: var(--ink);
   -webkit-text-size-adjust: 100%;
@@ -407,67 +407,62 @@ body::after {
 
 /* ---------- horizontal gallery: set page photos ---------- */
 .hgal {
-  position: relative;
-  padding: 4rem var(--gutter);
-  min-height: 70dvh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  --gh: min(62svh, 48rem); /* height of the photo in the middle */
+  --cap: 84vw; /* ...and its widest */
+  padding: 1rem 0 3rem;
 }
 .hgal-track {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: clamp(0.75rem, 2vw, 2rem);
+  height: calc(var(--gh) + 4rem);
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding-inline: 12%;
+  overscroll-behavior-x: contain;
+  /* First and last photos can reach the middle too. */
+  padding-inline:
+    calc(50vw - min(var(--gh) * var(--ar0), var(--cap)) / 2)
+    calc(50vw - min(var(--gh) * var(--arN), var(--cap)) / 2);
   cursor: grab;
   outline-offset: -4px;
-  margin-bottom: 2rem;
 }
 .hgal-track::-webkit-scrollbar { display: none; }
 .hgal-track.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+/* Every photo keeps its full size in the layout (so snapping centers it exactly) and the side ones
+   shrink toward the middle with a scale, which the compositor animates for free. */
 .hgal-slide {
-  flex: 0 0 min(50vw, 28rem);
+  flex: none;
+  width: min(calc(var(--gh) * var(--ar)), var(--cap));
   scroll-snap-align: center;
-  transform: scale(0.9);
-  transition: transform 0.6s var(--ease);
+  scale: 0.52;
+  transform-origin: 100% 50%;
   cursor: pointer;
+  transition: scale 0.55s var(--ease), box-shadow 0.55s var(--ease);
 }
-.hgal-slide.is-on {
-  transform: scale(1);
-  opacity: 1;
-  cursor: default;
-  box-shadow: 0 40px 80px -30px rgb(0 0 0 / 0.8);
-}
-.hgal-slide .photo { height: 100%; aspect-ratio: var(--ar); }
+.hgal-slide.is-after { transform-origin: 0% 50%; }
+.hgal-slide.is-on { scale: 1; cursor: zoom-in; box-shadow: 0 60px 110px -40px #000; }
 .hgal-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: clamp(1.5rem, 5vw, 3rem);
+  margin-top: 0.5rem;
 }
 .hgal-controls button {
-  padding: 0.5rem 1.5rem;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 0.08);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  display: grid;
+  place-items: center;
+  padding: 0.9rem 0.5rem;
   color: var(--ink);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.4s var(--ease);
+  transition: color 0.3s var(--ease), translate 0.3s var(--ease), opacity 0.3s var(--ease);
 }
-.hgal-controls button:hover:not(:disabled) {
-  background: rgb(255 255 255 / 0.15);
-}
-.hgal-controls button:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
+.hgal-controls button:first-child:hover:not(:disabled) { color: var(--accent); translate: -4px 0; }
+.hgal-controls button:last-child:hover:not(:disabled) { color: var(--accent); translate: 4px 0; }
+.hgal-controls button:disabled { opacity: 0.2; cursor: default; }
 .hgal-count {
   font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
   color: var(--dim);
   min-width: 4rem;
   text-align: center;
@@ -601,7 +596,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
 }
 
 /* ---------- view transitions (React <ViewTransition>) ---------- */
-:root { --vt-out: 240ms; --vt-in: 420ms; --vt-move: 700ms; }
+:root { --vt-out: 140ms; --vt-in: 260ms; --vt-move: 420ms; }
 @keyframes vt-fade { from { opacity: 0; } }
 @keyframes vt-slide { from { translate: var(--slide); } }
 ::view-transition-old(.nav-forward) { --slide: -56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
@@ -613,7 +608,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .hgal-slide, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .sleeve, .lightbox, .lightbox-photo { animation: none !important; }
 }
@@ -630,6 +625,7 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 42svh; }
   .pic:first-child { --hmax: 52svh; }
   .mosaic-foot { align-items: center; }
+  .hgal { --cap: 76vw; } /* leaves the neighbors room to show */
   .crate { --sh: 52svh; grid-template-columns: 1fr; gap: 1rem; }
   .sleeve { width: min(78%, calc(var(--sh) * var(--ar))); }
   .crate-controls { grid-auto-flow: column; justify-content: space-between; align-items: center; }
