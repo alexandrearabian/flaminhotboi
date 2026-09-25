@@ -42,7 +42,7 @@ export const t = {
     empty: 'No works yet. New concerts show up here within a day of being added.',
     bookings: 'Bookings',
     emailMe: 'Email me',
-    // One sentence per entry: the first is set large, the last is set apart as the closing line.
+    // One paragraph per entry.
     bio: [
       "I'm an advertising creative with a deep love for photography.",
       'I believe everything I learn in advertising feeds into my photography and vice versa.',

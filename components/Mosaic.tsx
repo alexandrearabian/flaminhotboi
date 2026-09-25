@@ -61,6 +61,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     return () => mq.removeEventListener('change', pick)
   }, [])
   const rows = Array.from({ length: n }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % n === k))
+  // The prints dealt in the intro: spread across the whole folder, starting from its middle.
+  // Photos next to each other are usually the same concert under the same light, so dealing the
+  // first few straight after the hero would open and close the intro on near-identical shots.
+  const m = Math.min(DEALT, photos.length - 1)
+  const dealt = Array.from({ length: m }, (_, k) => photos[1 + Math.floor((((k + Math.ceil(m / 2)) % m) * (photos.length - 1)) / m)])
 
   const place = (k: number) => {
     const track = rowRefs.current[k]?.firstElementChild as HTMLElement | undefined
@@ -256,7 +261,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
 
       {dealing && (
         <div ref={deal} className="deal" aria-hidden>
-          {photos.slice(1, DEALT + 1).map((p, i) => (
+          {dealt.map((p, i) => (
             <img key={p.id} className="print" src={`/photos/${p.id}/${p.widths[0]}.webp`} alt="" style={{ ...scatter(i), '--ar': p.w / p.h } as React.CSSProperties} />
           ))}
           <div className="deal-flash" />
