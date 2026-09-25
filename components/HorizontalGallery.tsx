@@ -20,14 +20,16 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
   const track = useRef<HTMLDivElement>(null)
   const drag = useRef({ x: 0, left: 0, moved: false, on: false })
 
+  // Recoloring the page restyles all of it, so it waits until the swipe settles on a photo.
   useEffect(() => {
-    setGel(photos[0].gel)
+    const id = setTimeout(() => setGel(photos[active].gel), 180)
+    return () => clearTimeout(id)
+  }, [photos, active])
+
+  useEffect(() => {
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (!e.isIntersecting) continue
-        const i = Number((e.target as HTMLElement).dataset.i)
-        setActive(i)
-        setGel(photos[i].gel)
+        if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.i))
       }
     }, { root: track.current, rootMargin: '0px -49% 0px -49%' }) // whichever photo crosses the center line
     track.current!.querySelectorAll('.hgal-slide').forEach((el) => io.observe(el))
