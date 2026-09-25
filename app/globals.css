@@ -13,6 +13,7 @@
   --dim: #9a948c;
   --accent: color-mix(in oklab, var(--gel), #fff 50%);
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --drop: clamp(6rem, 14vh, 9rem); /* from the top of the page to the first heading (Work, About, a set) */
   --font-body: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-soft: cubic-bezier(0.45, 0, 0.2, 1);
@@ -227,25 +228,29 @@ body::after {
 .deal.is-landing .deal-flash { animation: flash 0.9s var(--ease-soft); }
 @keyframes flash { 25% { opacity: 0.22; } }
 
-/* ---------- work: a grid of cards, each a cover on a fanned stack (components/SetBlock.tsx) ----------
-   The stack sits in a fixed 5:4 frame, sized from the frame (container units) and the cover's
-   shape, so cards line up whatever the photo. `.is-row` lays a card out sideways. */
-.sets { padding: clamp(6rem, 18vh, 12rem) var(--gutter) 0; }
-.sets-title { margin-bottom: clamp(2rem, 6vh, 4rem); }
-.sets-grid {
+/* ---------- sets: one per screen, cover on a fanned stack ---------- */
+.sets { padding: var(--drop) var(--gutter) 0; }
+.sets-title { margin-bottom: clamp(1rem, 4vh, 3rem); }
+.set-block { padding-block: clamp(2.5rem, 8vh, 5.5rem); }
+.set-link {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-  gap: clamp(2.5rem, 5vw, 4.5rem) clamp(1.5rem, 3vw, 3rem);
-  padding-bottom: clamp(3rem, 8vh, 6rem);
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 22rem);
+  align-items: end;
+  gap: clamp(2rem, 5vw, 4.5rem);
 }
-.set-link { display: grid; gap: 1.25rem; }
-.stack { display: grid; place-items: center; aspect-ratio: 5 / 4; container-type: size; }
-.stack-inner { position: relative; isolation: isolate; width: min(80cqw, calc(80cqh * var(--ar))); }
+.is-flip .set-link { grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr); }
+.is-flip .stack { order: 2; }
+.stack {
+  position: relative;
+  isolation: isolate;
+  justify-self: center;
+  width: min(calc(min(56svh, 34rem) * var(--ar)), 100%);
+}
 .stack-cover {
   position: relative;
   z-index: 1;
   width: 100%;
-  box-shadow: 0 40px 80px -40px rgb(0 0 0 / 0.95);
+  box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
   transition: translate 0.6s var(--ease);
 }
 .stack-peek {
@@ -264,20 +269,19 @@ body::after {
   box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
   transition: translate 0.9s var(--ease), rotate 0.9s var(--ease);
 }
-.stack-peek:nth-child(2) { --tx: 14%; --ty: 2%; --rot: 7deg; }
+.stack-peek:nth-child(2) { --tx: 16%; --ty: 2%; --rot: 7deg; }
 .stack-peek:nth-child(3) { --tx: -8%; --ty: 4%; --rot: -4deg; }
+.is-flip .stack-peek:nth-child(1) { --tx: -9%; --rot: -4deg; }
+.is-flip .stack-peek:nth-child(2) { --tx: -16%; --rot: -7deg; }
+.is-flip .stack-peek:nth-child(3) { --tx: 8%; --rot: 4deg; }
 
-.set-info { display: grid; justify-items: start; align-content: start; gap: 0.5rem; }
-.set-label { font-size: 0.75rem; letter-spacing: 0.1em; color: var(--accent); }
-.set-name { font-size: clamp(1.75rem, 2.6vw, 2.5rem); line-height: 0.95; transition: color 0.6s var(--ease); }
+.set-info { display: grid; justify-items: start; gap: 0.85rem; padding-bottom: 0.5rem; }
+.set-label { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--accent); }
+.set-name { font-size: clamp(2.25rem, 4.2vw, 4.25rem); transition: color 0.6s var(--ease); }
 .set-link:hover .set-name { color: var(--accent); }
 .set-details { font-size: 0.8125rem; color: var(--dim); white-space: pre-wrap; }
-.set-count { display: none; font-size: 0.8125rem; color: var(--dim); }
-.set-info .cta { margin-top: 0.6rem; }
-/* Sideways: thumbnail left, text right. */
-.set-block.is-row .set-link { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr); align-items: center; gap: clamp(1rem, 3vw, 2.5rem); }
-.sets-next { padding-top: clamp(2rem, 6vh, 4rem); padding-bottom: clamp(3rem, 8vh, 5rem); }
-.sets-next .set-block { max-width: 44rem; }
+.set-info .cta { margin-top: 0.5rem; }
+.sets-next { padding-top: 0; }
 .empty { color: var(--dim); max-width: 42ch; padding-bottom: 20vh; }
 
 .back { color: var(--accent); transition: color 0.4s var(--ease); }
@@ -289,7 +293,7 @@ body::after {
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   column-gap: clamp(2rem, 7vw, 7rem);
   align-items: start;
-  padding: clamp(6rem, 18vh, 12rem) var(--gutter) 4rem; /* same drop below the nav as the Work page */
+  padding: var(--drop) var(--gutter) 4rem;
 }
 .about-name { grid-column: 1 / -1; margin-bottom: clamp(3rem, 9vh, 6.5rem); white-space: nowrap; }
 .about-bio { display: grid; gap: 1.5rem; padding-top: 0.4rem; }
@@ -301,14 +305,13 @@ body::after {
   box-shadow: 0 60px 120px -50px rgb(0 0 0 / 0.95);
 }
 
-/* ---------- set page intro: title and details on one line, so the photos start high ---------- */
+/* ---------- set page intro ---------- */
 .set-intro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem 2rem;
-  padding: clamp(6rem, 14vh, 8.5rem) var(--gutter) 1rem;
+  padding: var(--drop) var(--gutter) clamp(0.5rem, 2vh, 1.5rem);
+  max-width: 100%;
+}
+.set-intro h1 {
+  margin-bottom: 1rem;
 }
 .intro-meta {
   display: flex;
@@ -327,15 +330,15 @@ body::after {
 
 /* ---------- horizontal gallery: set page photos ---------- */
 .hgal {
-  --gh: min(58svh, 44rem); /* height of the photo in the middle: intro, photos and arrows fit one screen */
-  --cap: 84vw; /* ...and its widest */
-  padding: 0.5rem 0 1rem;
+  --gh: min(56svh, 42rem); /* height of the photo in the middle */
+  --cap: 80vw; /* ...and its widest */
+  padding: 0 0 clamp(2rem, 6vh, 4rem);
 }
 .hgal-track {
   display: flex;
   align-items: center;
   gap: clamp(0.75rem, 2vw, 2rem);
-  height: calc(var(--gh) + 2.5rem);
+  height: calc(var(--gh) + 3rem);
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -401,10 +404,10 @@ body::after {
 
 /* ---------- design section: grid of pieces at bottom of home page ---------- */
 .design-section {
-  padding: clamp(6rem, 18vh, 11rem) var(--gutter) 0;
+  padding: clamp(3rem, 10vh, 6.5rem) var(--gutter) 0;
 }
 .design-section > .display-xl {
-  margin-bottom: clamp(2rem, 8vh, 6rem);
+  margin-bottom: clamp(1rem, 4vh, 3rem); /* same as the Work heading */
 }
 
 /* ---------- design: a record crate, one sleeve at a time (components/DesignStack.tsx) ---------- */
@@ -554,23 +557,25 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .display-xl { font-size: clamp(2.5rem, 13vw, 3.5rem); overflow-wrap: normal; } /* "Contrataciones" on one line */
 
   .mosaic { padding-top: 6.25rem; } /* the nav may take two lines here */
-  .hgal { --cap: 76vw; } /* leaves the neighbors room to show */
   .crate { --sh: 52svh; grid-template-columns: 1fr; gap: 1rem; }
   .sleeve { width: min(78%, calc(var(--sh) * var(--ar))); }
   .crate-controls { grid-auto-flow: column; justify-content: space-between; align-items: center; }
 
-  /* Every card goes sideways on phones: five works in about a screen and a half. */
-  .sets-grid { gap: 1.75rem; }
-  .set-block .set-link { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); align-items: center; gap: 1rem; }
-  .set-name { font-size: 1.5rem; }
-  .set-info .cta { display: none; }
-  .set-count { display: block; }
-  .set-intro { padding-top: 7rem; } /* clears a two-line nav */
-  .hgal { --gh: 48svh; }
+  :root { --drop: 7rem; } /* clears a two-line nav */
+  .sets-title { margin-bottom: 0.5rem; }
+  .set-block { padding-block: 2.25rem; }
+  .set-link, .is-flip .set-link { grid-template-columns: 1fr; gap: 1.5rem; }
+  .is-flip .stack { order: 0; }
+  .stack { width: min(calc(46svh * var(--ar)), 84%); } /* room for the fanned prints either side */
+  .set-info { gap: 0.6rem; padding-bottom: 0; }
+  .set-name { font-size: 2.25rem; }
+  .set-info .cta { margin-top: 0.4rem; }
+  .set-intro h1 { margin-bottom: 0.75rem; }
+  .hgal { --gh: 52svh; --cap: 76vw; } /* leaves the neighbors room to show */
 
 
   .footer { grid-template-columns: 1fr; align-items: start; }
-  .about { grid-template-columns: 1fr; padding: 7.5rem var(--gutter) 3rem; } /* clears a two-line nav */
+  .about { grid-template-columns: 1fr; padding-bottom: 3rem; }
   .about-name { white-space: normal; margin-bottom: 2rem; }
   .about-bio { gap: 1.1rem; padding-top: 0; }
   .about-photo { justify-self: stretch; width: 100%; margin-top: 3rem; }
