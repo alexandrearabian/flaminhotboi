@@ -5,7 +5,7 @@ import { Nav } from '@/components/Nav'
 import { Atmosphere } from '@/components/Atmosphere'
 import { Footer } from '@/components/Footer'
 import { isLang, langs, site, t } from '@/lib/i18n'
-import { design, featured } from '@/lib/sets'
+import { featured } from '@/lib/sets'
 import '../globals.css'
 
 // Display only. Body copy is Helvetica (globals.css).
@@ -37,7 +37,7 @@ export default async function Layout({ children, params }: { children: React.Rea
       <body>
         <a href="#main" className="skip">Skip to content</a>
         <Atmosphere />
-        <Nav lang={lang} hasDesign={design.length > 0} />
+        <Nav lang={lang} />
         {children}
         <Footer lang={lang} />
       </body>
