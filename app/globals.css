@@ -184,8 +184,8 @@ body::after {
 .pic.is-held { cursor: grabbing; scale: 1.035; box-shadow: 0 60px 110px -35px #000; }
 .is-done .pic {
   transition:
-    translate 1.1s var(--ease) calc(var(--i) * 45ms),
-    opacity 0.5s var(--ease-soft) calc(var(--i) * 45ms),
+    translate 0.7s var(--ease) calc(var(--i) * 25ms),
+    opacity 0.35s var(--ease-soft) calc(var(--i) * 25ms),
     scale 0.35s var(--ease),
     box-shadow 0.35s var(--ease);
 }
@@ -480,22 +480,90 @@ body::after {
 .design-section > .display-xl {
   margin-bottom: clamp(2rem, 8vh, 6rem);
 }
-.design-grid {
+
+/* ---------- design: a record crate, one sleeve at a time (components/DesignStack.tsx) ---------- */
+.crate {
+  --sh: min(68svh, 42rem);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: clamp(1rem, 3vw, 2rem);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 2rem;
   padding-bottom: clamp(4rem, 12vh, 8rem);
 }
-.design-grid img {
-  width: 100%;
-  height: auto;
-  display: block;
-  box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
-  transition: transform 0.5s var(--ease);
+.crate-stage {
+  position: relative;
+  height: calc(var(--sh) + 4rem);
+  touch-action: pan-y;
+  cursor: zoom-in;
+  outline-offset: 8px;
 }
-.design-grid img:hover {
-  transform: scale(1.03);
+/* --d: how far back in the crate. The front three sit fanned behind; deeper ones are hidden. */
+.sleeve {
+  --at: translate(-50%, -50%) translate(calc(var(--d) * 1.6rem), calc(var(--d) * -1.1rem)) rotate(calc(var(--d) * 2.5deg)) scale(calc(1 - var(--d) * 0.05));
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(72%, calc(var(--sh) * var(--ar)));
+  transform: var(--at);
+  z-index: calc(100 - var(--d));
+  opacity: clamp(0, calc((3.5 - var(--d)) * 10), 1);
+  pointer-events: none;
+  box-shadow: 0 50px 100px -40px #000;
+  transition: transform 0.6s var(--ease), opacity 0.3s var(--ease-soft);
 }
+.sleeve.is-out { animation: sleeve-out 0.7s var(--ease); }
+.sleeve.is-in { animation: sleeve-out 0.7s var(--ease) reverse; }
+/* Slides out to the side above the rest, then tucks in at the back (the reverse brings one forward). */
+@keyframes sleeve-out {
+  0% { transform: translate(-50%, -50%); z-index: 200; opacity: 1; }
+  45% { transform: translate(-50%, -50%) translate(-62%, 3%) rotate(-9deg); z-index: 200; opacity: 1; }
+  100% { transform: var(--at); }
+}
+.crate-controls { display: grid; justify-items: end; gap: 1rem; }
+.crate-count { font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--dim); font-variant-numeric: tabular-nums; }
+.crate-arrows { display: flex; gap: 0.5rem; }
+.crate-arrows button, .lightbox-bar button {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  transition: background-color 0.4s var(--ease), transform 0.2s var(--ease);
+}
+.crate-arrows button:hover, .lightbox-bar button:hover { background-color: color-mix(in oklab, var(--gel) 45%, rgb(16 14 14 / 0.38)); }
+.crate-arrows button:active, .lightbox-bar button:active { transform: scale(0.94); }
+
+/* ---------- lightbox: one photo, full screen (components/Lightbox.tsx) ---------- */
+.lightbox {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(5 5 5 / 0.97);
+  color: var(--ink);
+  touch-action: pinch-zoom; /* horizontal swipes reach the page's handlers */
+  overscroll-behavior: contain;
+}
+.lightbox[open] {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  place-items: center;
+  animation: lb-in 0.3s var(--ease-soft);
+}
+.lightbox::backdrop { background: transparent; }
+@keyframes lb-in { from { opacity: 0; } }
+.lightbox-photo {
+  width: min(94vw, calc((100svh - 7rem) * var(--ar)));
+  cursor: zoom-out;
+  animation: lb-photo 0.45s var(--ease);
+}
+@keyframes lb-photo { from { opacity: 0; scale: 0.97; } }
+.lightbox-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0 1.25rem; }
+.lightbox-count { min-width: 4.5rem; text-align: center; font-size: 0.8125rem; letter-spacing: 0.1em; color: var(--dim); font-variant-numeric: tabular-nums; }
+html:has(.lightbox[open]) { overflow: hidden; }
 
 /* ---------- footer: bookings ---------- */
 .footer {
@@ -545,8 +613,9 @@ body::after {
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .frame, .frame .photo, .caption, .reel-intro, .pic, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
+  .frame, .frame .photo, .caption, .reel-intro, .pic, .sleeve, .stack-peek, .stack-cover { transition-duration: 0.01s !important; transition-delay: 0s !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .sleeve, .lightbox, .lightbox-photo { animation: none !important; }
 }
 
 /* ---------- mobile ---------- */
@@ -561,6 +630,9 @@ body::after {
   .pic { --px: var(--xm); --py: var(--ym); --pw: var(--wm); --pr: var(--rm); --hmax: 42svh; }
   .pic:first-child { --hmax: 52svh; }
   .mosaic-foot { align-items: center; }
+  .crate { --sh: 52svh; grid-template-columns: 1fr; gap: 1rem; }
+  .sleeve { width: min(78%, calc(var(--sh) * var(--ar))); }
+  .crate-controls { grid-auto-flow: column; justify-content: space-between; align-items: center; }
 
   .set-link, .is-flip .set-link { grid-template-columns: 1fr; }
   .is-flip .stack { order: 0; }

@@ -1,13 +1,15 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { Lightbox, type Labels } from '@/components/Lightbox'
 import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
 
 // Horizontal scroll gallery for set pages: photos scroll left-right within a sticky section,
-// neighbors peek on sides, click/drag/arrows to navigate.
-export function HorizontalGallery({ photos, alt, title }: { photos: P[]; alt: string; title: string }) {
+// neighbors peek on sides, click/drag/arrows to navigate. Tap the center photo to open it.
+export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[]; alt: string; title: string; labels: Labels }) {
   const [active, setActive] = useState(0)
+  const [open, setOpen] = useState<number | null>(null)
   const track = useRef<HTMLDivElement>(null)
   const drag = useRef({ x: 0, left: 0, moved: false, on: false })
 
@@ -45,7 +47,8 @@ export function HorizontalGallery({ photos, alt, title }: { photos: P[]; alt: st
         ref={track}
         className="hgal-track"
         tabIndex={0}
-        aria-label="Photo gallery"
+        aria-label={title}
+        onKeyDown={(e) => e.key === 'Enter' && setOpen(active)}
         onPointerDown={(e) => {
           if (e.pointerType !== 'mouse') return
           drag.current = { x: e.clientX, left: track.current!.scrollLeft, moved: false, on: true }
@@ -67,17 +70,18 @@ export function HorizontalGallery({ photos, alt, title }: { photos: P[]; alt: st
             data-i={i}
             className={`hgal-slide${i === active ? ' is-on' : ''}`}
             style={{ '--ar': p.w / p.h } as React.CSSProperties}
-            onClick={() => !drag.current.moved && i !== active && center(i)}
+            onClick={() => !drag.current.moved && (i === active ? setOpen(i) : center(i))}
           >
             <Photo p={p} alt={alt} sizes="(min-width: 768px) 70vw, 90vw" priority={i === 0} />
           </figure>
         ))}
       </div>
       <div className="hgal-controls">
-        <button onClick={() => center(active - 1)} disabled={active === 0} aria-label="Previous">{' ← '}</button>
+        <button onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}>{' ← '}</button>
         <span className="hgal-count">{active + 1} / {photos.length}</span>
-        <button onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label="Next">{' → '}</button>
+        <button onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label={labels.next}>{' → '}</button>
       </div>
+      <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
     </section>
   )
 }

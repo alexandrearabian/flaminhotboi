@@ -12,9 +12,9 @@ const parse = (c: string): RGB | null => {
 // Stage lights hung above the page: where they hang (x, 0-1), where they point (radians from
 // straight down), how far and how fast they sweep (cycles per second), and how bright they are.
 const BEAMS = [
-  { x: 0.16, aim: 0.38, sweep: 0.2, speed: 0.045, phase: 0, alpha: 0.12 },
-  { x: 0.6, aim: -0.12, sweep: 0.3, speed: 0.032, phase: 2.2, alpha: 0.09 },
-  { x: 0.94, aim: -0.5, sweep: 0.16, speed: 0.058, phase: 4.1, alpha: 0.07 },
+  { x: 0.16, aim: 0.38, sweep: 0.3, speed: 0.07, phase: 0, alpha: 0.22 },
+  { x: 0.6, aim: -0.12, sweep: 0.38, speed: 0.05, phase: 2.2, alpha: 0.17 },
+  { x: 0.94, aim: -0.5, sweep: 0.24, speed: 0.085, phase: 4.1, alpha: 0.13 },
 ]
 
 // The room behind the photos: a few faint beams in the current stage color, sweeping slowly on

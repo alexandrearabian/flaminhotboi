@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
+import { Lightbox, type Labels } from '@/components/Lightbox'
 import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
@@ -36,15 +37,17 @@ let introPlayed = false
 
 // Opening sequence, on every page load: every main photo is dealt onto the screen like a stack
 // of prints, fast; the last one lands, fills the room, settles onto the table, and the rest
-// spread out from under it. Every print can then be picked up and moved.
-export function Mosaic({ photos, title, footer, alt, label }: {
+// spread out from under it. Every print can then be picked up and moved, or tapped to open.
+export function Mosaic({ photos, title, footer, alt, label, labels }: {
   photos: P[]
   title: string
   footer: React.ReactNode
   alt: string
   label: string
+  labels: Labels
 }) {
   const [phase, setPhase] = useState<Phase>('pending')
+  const [open, setOpen] = useState<number | null>(null)
   const spread = useRef<HTMLDivElement>(null)
   const deal = useRef<HTMLDivElement>(null)
   const hero = useRef<HTMLImageElement>(null)
@@ -118,9 +121,11 @@ export function Mosaic({ photos, title, footer, alt, label }: {
     return () => io.disconnect()
   }, [photos])
 
-  // Pick a print up and move it. Position lives in CSS variables, so dragging never re-renders.
-  // On touch, a vertical swipe still scrolls the page (touch-action: pan-y cancels the drag).
-  const grab = (e: React.PointerEvent<HTMLElement>, p: P) => {
+  // Pick a print up and move it; let go without moving and it opens. Position lives in CSS
+  // variables, so dragging never re-renders. On touch, a vertical swipe still scrolls the page
+  // (touch-action: pan-y cancels the drag).
+  const grab = (e: React.PointerEvent<HTMLElement>, i: number) => {
+    const p = photos[i]
     if (e.button !== 0 || phase !== 'done') return
     const el = e.currentTarget
     const box = spread.current!.getBoundingClientRect()
@@ -133,12 +138,15 @@ export function Mosaic({ photos, title, footer, alt, label }: {
     el.style.zIndex = String(++top.current)
     el.classList.add('is-held')
     setGel(p.gel)
+    let moved = false
     const move = (ev: PointerEvent) => {
+      moved ||= Math.abs(ev.clientX - e.clientX) + Math.abs(ev.clientY - e.clientY) > 6
       // The print's center stays on the table, so nothing gets lost off-screen.
       el.style.setProperty('--dx', `${ox + clamp(ev.clientX - e.clientX, box.left - cx, box.right - cx)}px`)
       el.style.setProperty('--dy', `${oy + clamp(ev.clientY - e.clientY, box.top - cy, box.bottom - cy)}px`)
     }
-    const drop = () => {
+    const drop = (ev: PointerEvent) => {
+      if (!moved && ev.type === 'pointerup') setOpen(i)
       el.classList.remove('is-held')
       el.removeEventListener('pointermove', move)
       el.removeEventListener('pointerup', drop)
@@ -172,7 +180,9 @@ export function Mosaic({ photos, title, footer, alt, label }: {
             data-i={i}
             className="pic"
             style={{ ...slot(i), '--ar': p.w / p.h, '--i': i } as React.CSSProperties}
-            onPointerDown={(e) => grab(e, p)}
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && setOpen(i)}
+            onPointerDown={(e) => grab(e, i)}
             onDragStart={(e) => e.preventDefault()}
           >
             <Photo p={p} alt={alt} sizes={i ? '(min-width: 768px) 24vw, 68vw' : '(min-width: 768px) 36vw, 86vw'} priority={i === 0} />
@@ -181,6 +191,7 @@ export function Mosaic({ photos, title, footer, alt, label }: {
       </div>
 
       <div className="mosaic-foot">{footer}</div>
+      <Lightbox photos={photos} alt={alt} index={open} onIndex={setOpen} labels={labels} />
 
       {playing && (
         <div ref={deal} className="deal" aria-hidden>
