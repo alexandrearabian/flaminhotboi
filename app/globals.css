@@ -296,7 +296,7 @@ body::after {
 }
 .about-name { grid-column: 1 / -1; margin-bottom: clamp(3rem, 9vh, 6.5rem); white-space: nowrap; }
 .about-bio { display: grid; gap: 1.5rem; padding-top: 0.4rem; }
-.about-bio p { max-width: 40ch; font-size: clamp(1.125rem, 1.4vw, 1.3rem); line-height: 1.6; }
+.about-bio p { max-width: 58ch; }
 .about-photo {
   justify-self: end;
   width: min(100%, calc(78svh * var(--ar, 0.8)));
@@ -571,6 +571,5 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .about { grid-template-columns: 1fr; padding: 7.5rem var(--gutter) 3rem; } /* clears a two-line nav */
   .about-name { white-space: normal; margin-bottom: 2rem; }
   .about-bio { gap: 1.1rem; padding-top: 0; }
-  .about-bio p { font-size: 1.0625rem; }
   .about-photo { justify-self: stretch; width: 100%; margin-top: 3rem; }
 }
