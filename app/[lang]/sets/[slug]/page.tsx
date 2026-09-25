@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ViewTransition } from 'react'
-import { Reel } from '@/components/Reel'
+import { HorizontalGallery } from '@/components/HorizontalGallery'
 import { SetBlock } from '@/components/SetBlock'
 import { details, t, type Lang } from '@/lib/i18n'
 import { sets } from '@/lib/sets'
@@ -42,24 +42,15 @@ export default async function SetPage({ params }: Params) {
       default="none"
     >
       <main id="main">
-        <Reel
-          frames={photos.map((p, n) => ({
-            photo: p,
-            alt,
-            title: `${tr.track} ${String(n + 1).padStart(2, '0')}  ${set.artist}`,
-            name: n === 0 ? `cover-${set.slug}` : undefined,
-          }))}
-          intro={
-            <>
-              <h1 className="display-l">{set.artist}</h1>
-              <p className="intro-meta">
-                <Link href={`/${lang}#setlist`} className="back" transitionTypes={['nav-back']}>← {tr.allSets}</Link>
-                {details(set).map((d) => <span key={d}>{d}</span>)}
-                <span>{photos.length} {tr.photos}</span>
-              </p>
-            </>
-          }
-        />
+        <section className="set-intro">
+          <h1 className="display-l">{set.artist}</h1>
+          <p className="intro-meta">
+            <Link href={`/${lang}#setlist`} className="back" transitionTypes={['nav-back']}>← {tr.allSets}</Link>
+            {details(set).map((d) => <span key={d}>{d}</span>)}
+            <span>{photos.length} {tr.photos}</span>
+          </p>
+        </section>
+        <HorizontalGallery photos={photos} alt={alt} title={set.artist} />
         {next !== set && (
           <section className="sets sets-next">
             <SetBlock set={next} lang={lang} label={`${tr.nextSet} →`} />
