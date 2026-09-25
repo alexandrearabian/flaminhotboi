@@ -615,7 +615,10 @@ html:has(.lightbox[open]) { overflow: hidden; }
   height: 1px;
   background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--gel) 70%, #fff 10%), transparent);
 }
-.footer-book { display: grid; justify-items: start; gap: 1.5rem; }
+.footer-book { display: grid; justify-items: start; gap: 1.5rem; container-type: inline-size; }
+/* The usual display size, unless the word is too long for its column ("Contrataciones"): then as
+   big as fits on one line (Parafina capitals average about half an em wide). */
+.footer-title { font-size: min(clamp(3.5rem, 10vw, 10rem), calc(100cqi / (var(--chars) * 0.52))); overflow-wrap: normal; white-space: nowrap; }
 .footer-line { color: var(--dim); max-width: 40ch; }
 .footer-contact { display: grid; justify-items: start; gap: 1.5rem; }
 .footer-email { font: clamp(1.75rem, 3.2vw, 2.75rem)/1.1 var(--font-display), Palatino, serif; letter-spacing: 0.02em; overflow-wrap: anywhere; transition: color 0.5s var(--ease); }

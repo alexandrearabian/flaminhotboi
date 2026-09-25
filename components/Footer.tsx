@@ -6,7 +6,7 @@ export function Footer({ lang }: { lang: Lang }) {
   return (
     <footer className="footer" id="contact">
       <div className="footer-book">
-        <h2 className="display-xl">{tr.bookings}</h2>
+        <h2 className="display-xl footer-title" style={{ '--chars': tr.bookings.length } as React.CSSProperties}>{tr.bookings}</h2>
         <p className="footer-line">{tr.bookingLine}</p>
         <a href={`mailto:${site.email}`} className="cta cta-lg glass">
           {tr.emailMe}
