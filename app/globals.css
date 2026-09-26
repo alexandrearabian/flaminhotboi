@@ -263,7 +263,6 @@ body::after {
   object-fit: cover;
   translate: calc(-50% + var(--tx)) calc(-50% + var(--ty));
   rotate: var(--rot);
-  filter: brightness(0.6);
   box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
   transition: translate 0.9s var(--ease), rotate 0.9s var(--ease);
 }
