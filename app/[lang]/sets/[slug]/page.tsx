@@ -47,13 +47,12 @@ export default async function SetPage({ params }: Params) {
           <p className="intro-meta">
             <Link href={`/${lang}/work`} className="back" transitionTypes={['nav-back']}>← {tr.allSets}</Link>
             {details(set).map((d) => <span key={d}>{d}</span>)}
-            <span>{photos.length} {tr.photos}</span>
           </p>
         </section>
         <HorizontalGallery photos={photos} alt={alt} title={set.artist} labels={{ prev: tr.prev, next: tr.next, close: tr.close }} />
         {next !== set && (
           <section className="sets sets-next">
-            <SetBlock set={next} lang={lang} label={`${tr.nextSet} →`} row />
+            <SetBlock set={next} lang={lang} label={`${tr.nextSet} →`} />
           </section>
         )}
       </main>

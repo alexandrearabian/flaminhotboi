@@ -69,7 +69,7 @@ export function DesignStack({ pieces, alt, title, labels }: { pieces: P[]; alt: 
       </div>
       {n > 1 && (
         <div className="crate-controls">
-          <span className="crate-count">{String(top + 1).padStart(2, '0')} / {String(n).padStart(2, '0')}</span>
+          <span className="crate-count">{String(top + 1).padStart(2, '0')}</span>
           <div className="crate-arrows">
             <button type="button" className="glass" onClick={() => go(-1)} aria-label={labels.prev}>←</button>
             <button type="button" className="glass" onClick={() => go(1)} aria-label={labels.next}>→</button>

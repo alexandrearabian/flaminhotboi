@@ -106,15 +106,13 @@ export function Lightbox({ photos, alt, index, onIndex, labels, origin }: {
           <figure ref={fig} key={p.id} className="lightbox-photo" style={{ '--ar': p.w / p.h } as React.CSSProperties}>
             <Photo p={p} alt={alt} sizes="100vw" priority />
           </figure>
-          <div ref={bar} className="lightbox-bar">
-            {n > 1 && (
-              <>
-                <button type="button" className="glass" onClick={() => step(-1)} aria-label={labels.prev}>←</button>
-                <span className="lightbox-count">{index! + 1} / {n}</span>
-                <button type="button" className="glass" onClick={() => step(1)} aria-label={labels.next}>→</button>
-              </>
-            )}
-          </div>
+          {n > 1 && (
+            <div ref={bar} className="lightbox-bar">
+              <button type="button" className="glass" onClick={() => step(-1)} aria-label={labels.prev}>←</button>
+              <span className="lightbox-count">{index! + 1}</span>
+              <button type="button" className="glass" onClick={() => step(1)} aria-label={labels.next}>→</button>
+            </div>
+          )}
         </>
       )}
     </dialog>

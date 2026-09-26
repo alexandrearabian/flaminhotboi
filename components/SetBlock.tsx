@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { GALLERY_SIZES, Photo } from '@/components/Photo'
+import { Photo } from '@/components/Photo'
 import { Reveal } from '@/components/Reveal'
-import { WarmUp } from '@/components/WarmUp'
 import { details, t, type Lang } from '@/lib/i18n'
 import type { Set } from '@/lib/sets'
 
@@ -9,8 +8,7 @@ import type { Set } from '@/lib/sets'
 // "there's more in here".
 export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; label: string; flip?: boolean }) {
   const tr = t[lang]
-  const rest = set.photos.filter((p) => p.id !== set.cover.id)
-  const peek = rest.slice(0, 3)
+  const peek = set.photos.filter((p) => p.id !== set.cover.id).slice(0, 3)
   return (
     <Reveal className={`set-block${flip ? ' is-flip' : ''}`} data-gel={set.cover.gel} style={{ '--ar': set.cover.w / set.cover.h } as React.CSSProperties}>
       <Link href={`/${lang}/sets/${set.slug}`} className="set-link" transitionTypes={['nav-forward']}>
@@ -30,8 +28,6 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
           ))}
             <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
         </div>
-        {/* The work's page opens on its cover and the two after it: have them ready. */}
-        <WarmUp photos={[set.cover, ...rest.slice(0, 2)]} sizes={GALLERY_SIZES} />
         <div className="set-info">
           <div className="set-title">
             <span className="set-label">{label}</span>
@@ -40,7 +36,6 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
           {details(set).length > 0 && <p className="set-details">{details(set).join('   ')}</p>}
           <span className="cta glass">
             {tr.openSet}
-            <span className="cta-count">{set.photos.length} {tr.photos}</span>
             <span className="cta-icon" aria-hidden>→</span>
           </span>
         </div>

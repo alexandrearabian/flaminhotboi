@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { Lightbox, type Labels } from '@/components/Lightbox'
-import { GALLERY_SIZES, Photo } from '@/components/Photo'
+import { Photo } from '@/components/Photo'
 import { setGel } from '@/lib/gel'
 import type { Photo as P } from '@/lib/sets'
 
@@ -96,13 +96,13 @@ export function HorizontalGallery({ photos, alt, title, labels }: { photos: P[];
             style={{ '--ar': p.w / p.h } as React.CSSProperties}
             onClick={() => !drag.current.moved && (i === active ? setOpen(i) : center(i))}
           >
-            <Photo p={p} alt={alt} sizes={GALLERY_SIZES} priority={i === 0} />
+            <Photo p={p} alt={alt} sizes="(min-width: 768px) 60vw, 84vw" priority={i === 0} />
           </figure>
         ))}
       </div>
       <div className="hgal-controls">
         <button type="button" onClick={() => center(active - 1)} disabled={active === 0} aria-label={labels.prev}><Arrow /></button>
-        <span className="hgal-count">{active + 1} / {photos.length}</span>
+        <span className="hgal-count">{active + 1}</span>
         <button type="button" onClick={() => center(active + 1)} disabled={active === photos.length - 1} aria-label={labels.next}><Arrow flip /></button>
       </div>
       {/* Stepping through the open photo keeps the gallery under it in step, so closing shrinks

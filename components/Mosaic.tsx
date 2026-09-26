@@ -148,10 +148,13 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       if (cancelled) return
 
       // Aim the landing at where the tile is now, not where it was when the intro began: anything
-      // that shifted the layout since (fonts, styles, the switch to phone rows) would otherwise
-      // land the hero beside its tile.
+      // that shifted the layout since (fonts, the Safari toolbar, the switch to phone rows)
+      // would otherwise land the hero beside its tile, or in a box of the old shape so the
+      // swap crops it.
       const now = heroTile().getBoundingClientRect()
-      const land = T(now.left + now.width / 2 - (r.left + r.width / 2), now.top + now.height / 2 - (r.top + r.height / 2), now.width / r.width)
+      const boxH = r.width * (now.height / Math.max(now.width, 1))
+      img.style.height = `${boxH}px`
+      const land = T(now.left + now.width / 2 - (r.left + r.width / 2), now.top + now.height / 2 - (r.top + boxH / 2), now.width / r.width)
       setPhase('settling')
       // The print's shadow fades as it settles: its tile has none, and the swap would drop it at once.
       const shade = getComputedStyle(img).boxShadow
@@ -166,8 +169,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       // One last look before handing over: if the tile has moved or resized since (anything that
       // shifted the layout), glide onto it rather than letting the swap snap.
       const end = heroTile().getBoundingClientRect()
-      if (Math.abs(end.left - now.left) + Math.abs(end.top - now.top) + Math.abs(end.width - now.width) > 1) {
-        const fix = T(end.left + end.width / 2 - (r.left + r.width / 2), end.top + end.height / 2 - (r.top + r.height / 2), end.width / r.width)
+      const endH = r.width * (end.height / Math.max(end.width, 1))
+      const moved = Math.abs(end.left - now.left) + Math.abs(end.top - now.top) + Math.abs(end.width - now.width) + Math.abs(end.height - now.height) > 1
+      if (moved) {
+        img.style.height = `${endH}px`
+        const fix = T(end.left + end.width / 2 - (r.left + r.width / 2), end.top + end.height / 2 - (r.top + endH / 2), end.width / r.width)
         await img.animate([{ transform: land }, { transform: fix }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       }
       setDealing(false)
