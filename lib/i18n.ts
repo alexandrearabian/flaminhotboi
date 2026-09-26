@@ -71,7 +71,8 @@ export const t = {
     bookings: 'Contrataciones',
     emailMe: 'Escríbeme',
     bio: [
-      'Soy creativo publicitario pero también tengo un amor muy profundo con la fotografía. Creo en que todo lo que aprendo en publicidad termina alimentando a mi fotografía y viceversa.',
+      'Soy creativo publicitario pero también tengo un amor muy profundo con la fotografía.',
+      'Creo en que todo lo que aprendo en publicidad termina alimentando a mi fotografía y viceversa.',
       'Mi única regla en la fotografía es intentar sacar la mejor foto sin importar la cámara, el formato o la situación.',
     ],
   },

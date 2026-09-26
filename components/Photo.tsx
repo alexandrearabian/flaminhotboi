@@ -1,5 +1,8 @@
 import type { Photo as P } from '@/lib/sets'
 
+// How wide a set page's main photo shows; also what its photos are fetched ahead at (WarmUp).
+export const GALLERY_SIZES = '(min-width: 768px) 60vw, 84vw'
+
 export const srcSet = (p: P, ext: string) => p.widths.map((w) => `/photos/${p.id}/${w}.${ext} ${w}w`).join(', ')
 
 // Pre-generated AVIF/WebP from scripts/sync-drive.mjs, blurred placeholder underneath.
