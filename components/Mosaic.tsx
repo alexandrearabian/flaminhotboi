@@ -122,7 +122,8 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       // can be the wrong shape for a moment, and a print cut to that shape lands cropped.
       const AR = photos[0].w / photos[0].h
       const at = (q: DOMRect) => ({ x: q.left + q.width / 2, y: q.top + q.height / 2, h: q.height })
-      const b = at(heroTile().getBoundingClientRect())
+      const seen = () => heroTile().querySelector('.photo')!.getBoundingClientRect() // the photo itself, not its tile
+      const b = at(seen())
       const bw = b.h * AR
       const img = hero.current!
       Object.assign(img.style, { left: `${b.x - bw / 2}px`, top: `${b.y - b.h / 2}px`, width: `${bw}px`, height: `${b.h}px` })
@@ -157,7 +158,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       // Aim the landing at where the tile is now, not where it was when the intro began: anything
       // that shifted the layout since (fonts, styles, the switch to phone rows) would otherwise
       // land the hero beside its tile.
-      const now = at(heroTile().getBoundingClientRect())
+      const now = at(seen())
       const land = onto(now)
       setPhase('settling')
       // The print's shadow fades as it settles: its tile has none, and the swap would drop it at once.
@@ -172,7 +173,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       await settle
       // One last look before handing over: if the tile has moved or resized since (anything that
       // shifted the layout), glide onto it rather than letting the swap snap.
-      const end = at(heroTile().getBoundingClientRect())
+      const end = at(seen())
       if (Math.abs(end.x - now.x) + Math.abs(end.y - now.y) + Math.abs(end.h - now.h) > 1)
         await img.animate([{ transform: land }, { transform: onto(end) }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       // Cross-fade into the tile (already showing underneath) rather than swapping in one frame, so
