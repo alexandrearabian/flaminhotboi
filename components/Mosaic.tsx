@@ -12,7 +12,10 @@ const T = (dx: number, dy: number, s: number) => `translate(${dx}px, ${dy}px) sc
 const scatter = (i: number) => ({ '--r': `${((i * 37) % 11) - 5}deg`, '--x': `${((i * 53) % 13) - 6}vw`, '--y': `${((i * 29) % 9) - 4}vh` })
 
 const PHONE = '(max-width: 767px)' // phones get four shorter rows instead of three
-const COPIES = 3 // each row is its photos three times over; it drifts within the middle copy and wraps
+// Each row is its photos twice over; it drifts within a copy-width window centered on the seam
+// between the two and wraps. A third copy used to give a drag past either edge somewhere to land,
+// but rows no longer scroll by hand, so it was dead weight (never intersected the wrap window).
+const COPIES = 2
 const SPEEDS = [26, 21, 31, 24] // px per second, per row: never quite in step, so their gaps never line up for long
 const DEALT = 14 // prints flicked onto the screen in the intro
 
