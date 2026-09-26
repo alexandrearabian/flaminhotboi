@@ -52,7 +52,7 @@ export default async function SetPage({ params }: Params) {
         <HorizontalGallery photos={photos} alt={alt} title={set.artist} labels={{ prev: tr.prev, next: tr.next, close: tr.close }} />
         {next !== set && (
           <section className="sets sets-next">
-            <SetBlock set={next} lang={lang} label={`${tr.nextSet} →`} row />
+            <SetBlock set={next} lang={lang} label={`${tr.nextSet} →`} />
           </section>
         )}
       </main>

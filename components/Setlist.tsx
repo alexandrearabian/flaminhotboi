@@ -5,7 +5,7 @@ import { setGel } from '@/lib/gel'
 import { t, type Lang } from '@/lib/i18n'
 import type { Set } from '@/lib/sets'
 
-// The concerts as a grid of cards (rows on phones). The page takes the color of the set crossing the middle.
+// The concerts, one per row, alternating sides. The page takes the color of the set crossing the middle.
 export function Setlist({ sets, lang }: { sets: Set[]; lang: Lang }) {
   const ref = useRef<HTMLElement>(null)
 
@@ -21,11 +21,9 @@ export function Setlist({ sets, lang }: { sets: Set[]; lang: Lang }) {
     <section id="work" className="sets" ref={ref}>
       <h1 className="sets-title display-xl">{t[lang].setlist}</h1>
       {sets.length === 0 && <p className="empty">{t[lang].empty}</p>}
-      <div className="sets-grid">
-        {sets.map((s, n) => (
-          <SetBlock key={s.slug} set={s} lang={lang} label={String(n + 1).padStart(2, '0')} />
-        ))}
-      </div>
+      {sets.map((s, n) => (
+        <SetBlock key={s.slug} set={s} lang={lang} label={String(n + 1).padStart(2, '0')} flip={n % 2 === 1} />
+      ))}
     </section>
   )
 }
