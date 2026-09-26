@@ -117,13 +117,20 @@ export function Mosaic({ photos, title, alt, label, labels }: {
         const mid = (f: HTMLElement) => { const q = f.getBoundingClientRect(); return Math.abs(q.left + q.width / 2 - innerWidth / 2) }
         return mid(b) < mid(a) ? b : a
       })
-      const r = heroTile().getBoundingClientRect()
+      // The flying print's box always has the photo's own proportions, placed by the tile's center
+      // and height only. A tile measured mid-change (a phone switching from three rows to four)
+      // can be the wrong shape for a moment, and a print cut to that shape lands cropped.
+      const AR = photos[0].w / photos[0].h
+      const at = (q: DOMRect) => ({ x: q.left + q.width / 2, y: q.top + q.height / 2, h: q.height })
+      const b = at(heroTile().getBoundingClientRect())
+      const bw = b.h * AR
       const img = hero.current!
-      Object.assign(img.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` })
-      const dx = innerWidth / 2 - (r.left + r.width / 2)
-      const dy = innerHeight / 2 - (r.top + r.height / 2)
-      const sPrint = (innerHeight * 0.46) / r.height
-      const sCover = Math.max(innerWidth / r.width, innerHeight / r.height)
+      Object.assign(img.style, { left: `${b.x - bw / 2}px`, top: `${b.y - b.h / 2}px`, width: `${bw}px`, height: `${b.h}px` })
+      const onto = (q: ReturnType<typeof at>) => T(q.x - b.x, q.y - b.y, q.h / b.h) // the print laid over tile q
+      const dx = innerWidth / 2 - b.x
+      const dy = innerHeight / 2 - b.y
+      const sPrint = (innerHeight * 0.46) / b.h
+      const sCover = Math.max(innerWidth / bw, innerHeight / b.h)
 
       const imgs = [...deal.current!.querySelectorAll('img')]
       await Promise.race([Promise.all(imgs.map((i) => i.decode().catch(() => {}))), wait(1500)])
@@ -150,8 +157,8 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       // Aim the landing at where the tile is now, not where it was when the intro began: anything
       // that shifted the layout since (fonts, styles, the switch to phone rows) would otherwise
       // land the hero beside its tile.
-      const now = heroTile().getBoundingClientRect()
-      const land = T(now.left + now.width / 2 - (r.left + r.width / 2), now.top + now.height / 2 - (r.top + r.height / 2), now.width / r.width)
+      const now = at(heroTile().getBoundingClientRect())
+      const land = onto(now)
       setPhase('settling')
       // The print's shadow fades as it settles: its tile has none, and the swap would drop it at once.
       const shade = getComputedStyle(img).boxShadow
@@ -165,11 +172,9 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       await settle
       // One last look before handing over: if the tile has moved or resized since (anything that
       // shifted the layout), glide onto it rather than letting the swap snap.
-      const end = heroTile().getBoundingClientRect()
-      if (Math.abs(end.left - now.left) + Math.abs(end.top - now.top) + Math.abs(end.width - now.width) > 1) {
-        const fix = T(end.left + end.width / 2 - (r.left + r.width / 2), end.top + end.height / 2 - (r.top + r.height / 2), end.width / r.width)
-        await img.animate([{ transform: land }, { transform: fix }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
-      }
+      const end = at(heroTile().getBoundingClientRect())
+      if (Math.abs(end.x - now.x) + Math.abs(end.y - now.y) + Math.abs(end.h - now.h) > 1)
+        await img.animate([{ transform: land }, { transform: onto(end) }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       // Cross-fade into the tile (already showing underneath) rather than swapping in one frame, so
       // any difference between the two (resolution, a pixel of position) melts instead of snapping.
       await img.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-out', fill: 'forwards' }).finished
