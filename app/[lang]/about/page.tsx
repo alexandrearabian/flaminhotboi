@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { ViewTransition } from 'react'
 import { Photo } from '@/components/Photo'
 import { site, t, type Lang } from '@/lib/i18n'
 import { about, featured } from '@/lib/sets'
@@ -13,11 +12,7 @@ export default async function About({ params }: { params: Promise<{ lang: string
   const tr = t[(await params).lang as Lang]
   const shot = about ?? featured[1] ?? featured[0] // a home photo until "SOBRE MI" has one
   return (
-    <ViewTransition
-      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-      default="none"
-    >
+    <>
       <main id="main" className="about">
         <h1 className="display-xl about-name">{site.name}</h1>
         <div className="about-bio">
@@ -33,6 +28,6 @@ export default async function About({ params }: { params: Promise<{ lang: string
           )
         )}
       </main>
-    </ViewTransition>
+    </>
   )
 }

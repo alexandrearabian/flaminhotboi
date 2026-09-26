@@ -63,7 +63,7 @@ export function DesignStack({ pieces, alt, title, labels }: { pieces: P[]; alt: 
             aria-hidden={i !== top}
             onAnimationEnd={() => setFlip(null)}
           >
-            <Photo p={p} alt={alt} sizes="(min-width: 768px) 44vw, 80vw" />
+            <Photo p={p} alt={alt} sizes="(min-width: 768px) 40vw, 78vw" />
           </figure>
         ))}
       </div>

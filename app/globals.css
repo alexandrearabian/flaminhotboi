@@ -127,7 +127,6 @@ body::after {
   justify-content: space-between;
   gap: 0.5rem 2rem;
   padding: 1.6rem var(--gutter);
-  view-transition-name: nav;
 }
 .nav a { pointer-events: auto; }
 .nav-brand { font: 2rem/1 var(--font-display), Palatino, serif; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -535,14 +534,11 @@ html:has(.lightbox[open]) { overflow: hidden; }
   .set-block.is-in .stack-peek { transition-delay: calc(var(--k) * 90ms); }
 }
 
-/* ---------- view transitions (React <ViewTransition>) ---------- */
-:root { --vt-out: 140ms; --vt-in: 260ms; --vt-move: 420ms; }
-@keyframes vt-fade { from { opacity: 0; } }
-@keyframes vt-slide { from { translate: var(--slide); } }
-::view-transition-old(.nav-forward) { --slide: -56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
-::view-transition-new(.nav-forward) { --slide: 56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
-::view-transition-old(.nav-back) { --slide: 56px; animation: var(--vt-out) ease-in both vt-fade reverse, var(--vt-move) var(--ease) both vt-slide reverse; }
-::view-transition-new(.nav-back) { --slide: -56px; animation: var(--vt-in) ease-out var(--vt-out) both vt-fade, var(--vt-move) var(--ease) both vt-slide; }
+/* ---------- page entry ----------
+   Each page fades in as it mounts. Nothing waits for it: page-to-page view transitions froze the
+   old page on screen until the new page's photos had loaded (a "stuck" photo on slow phones). */
+main { animation: page-in 0.35s var(--ease-soft) backwards; }
+@keyframes page-in { from { opacity: 0; } }
 
 /* ---------- reduced motion ---------- */
 

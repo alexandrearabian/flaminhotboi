@@ -23,12 +23,12 @@ export function Nav({ lang }: { lang: Lang }) {
   }, [])
   return (
     <header className="nav">
-      <Link href={`/${lang}`} className="nav-brand" transitionTypes={['nav-back']}>
+      <Link href={`/${lang}`} className="nav-brand">
         {site.navName}
       </Link>
       <nav>
-        <Link href={`/${lang}/work`} transitionTypes={['nav-forward']}>{t[lang].setlist}</Link>
-        <Link href={`/${lang}/about`} transitionTypes={['nav-forward']}>{t[lang].about}</Link>
+        <Link href={`/${lang}/work`}>{t[lang].setlist}</Link>
+        <Link href={`/${lang}/about`}>{t[lang].about}</Link>
         <a href="https://ramitoto.myportfolio.com/" target="_blank" rel="noopener noreferrer">{t[lang].advertising}</a>
         <Link href={path} hrefLang={other} scroll={false} className="nav-lang" aria-label={other === 'en' ? 'English' : 'Español'} title={other === 'en' ? 'English' : 'Español'}>
           {lang.toUpperCase()}

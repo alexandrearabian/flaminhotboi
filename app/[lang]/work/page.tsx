@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { ViewTransition } from 'react'
 import { DesignStack } from '@/components/DesignStack'
 import { Setlist } from '@/components/Setlist'
 import { site, t, type Lang } from '@/lib/i18n'
@@ -14,11 +13,7 @@ export default async function Work({ params }: { params: Promise<{ lang: string 
   const lang = (await params).lang as Lang
   const tr = t[lang]
   return (
-    <ViewTransition
-      enter={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-      exit={{ 'nav-forward': 'nav-forward', 'nav-back': 'nav-back', default: 'none' }}
-      default="none"
-    >
+    <>
       <main id="main">
         <Setlist sets={sets} lang={lang} />
         {design.length > 0 && (
@@ -28,6 +23,6 @@ export default async function Work({ params }: { params: Promise<{ lang: string 
           </section>
         )}
       </main>
-    </ViewTransition>
+    </>
   )
 }

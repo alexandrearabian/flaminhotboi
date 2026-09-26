@@ -170,6 +170,9 @@ export function Mosaic({ photos, title, alt, label, labels }: {
         const fix = T(end.left + end.width / 2 - (r.left + r.width / 2), end.top + end.height / 2 - (r.top + r.height / 2), end.width / r.width)
         await img.animate([{ transform: land }, { transform: fix }], { duration: 260, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }).finished
       }
+      // Cross-fade into the tile (already showing underneath) rather than swapping in one frame, so
+      // any difference between the two (resolution, a pixel of position) melts instead of snapping.
+      await img.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-out', fill: 'forwards' }).finished
       setDealing(false)
     }
     run().catch(() => {}) // animations reject if the intro is skipped mid-flight
@@ -259,7 +262,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
                 onKeyDown={(e) => e.key === 'Enter' && setOpen(i)}
                 onClick={() => setOpen(i)}
               >
-                <Photo p={p} alt={alt} sizes="(min-width: 768px) 30vw, 90vw" priority={c === 1 && j < 5} />
+                <Photo p={p} alt={alt} sizes="(min-width: 768px) 27vw, 66vw" priority={c === 1 && j < 5} eager={c === 1} />
               </figure>
             )),
           )}

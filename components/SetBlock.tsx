@@ -13,7 +13,7 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
   const peek = rest.slice(0, 3)
   return (
     <Reveal className={`set-block${flip ? ' is-flip' : ''}`} data-gel={set.cover.gel} style={{ '--ar': set.cover.w / set.cover.h } as React.CSSProperties}>
-      <Link href={`/${lang}/sets/${set.slug}`} className="set-link" transitionTypes={['nav-forward']}>
+      <Link href={`/${lang}/sets/${set.slug}`} className="set-link">
         <div className="stack">
           {peek.map((p, k) => (
             <img
@@ -28,7 +28,7 @@ export function SetBlock({ set, lang, label, flip }: { set: Set; lang: Lang; lab
               decoding="async"
             />
           ))}
-            <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 60vw, 92vw" className="stack-cover" />
+            <Photo p={set.cover} alt={tr.liveAt(set.artist, set.venue)} sizes="(min-width: 768px) 52vw, 76vw" className="stack-cover" />
         </div>
         {/* The work's page opens on its cover and the two after it: have them ready. */}
         <WarmUp photos={[set.cover, ...rest.slice(0, 2)]} sizes={GALLERY_SIZES} />
