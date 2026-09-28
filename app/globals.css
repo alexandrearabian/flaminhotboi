@@ -169,7 +169,7 @@ body::after {
   display: grid;
   grid-template-rows: repeat(var(--rows, 3), minmax(0, 1fr));
   gap: clamp(1rem, 2.2vw, 2rem);
-  height: 100svh;
+  height: var(--mh, 100svh); /* --mh: set by Mosaic.tsx, see there */
   min-height: 30rem;
   padding: 6rem 0 clamp(0.75rem, 2vh, 1.5rem); /* clears the nav */
 }

@@ -63,6 +63,21 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     mq.addEventListener('change', pick)
     return () => mq.removeEventListener('change', pick)
   }, [])
+  // In-app browsers (Instagram, TikTok) resize the page itself when their toolbar hides on scroll,
+  // and svh follows along there. On touch screens the mosaic keeps the height it opened with and
+  // only refits when the width changes (rotation), so scrolling never resizes the rows.
+  useLayoutEffect(() => {
+    const el = section.current!
+    let w = 0
+    const fit = () => {
+      if (innerWidth === w && matchMedia('(pointer: coarse)').matches) return
+      w = innerWidth
+      el.style.setProperty('--mh', `${innerHeight}px`)
+    }
+    fit()
+    addEventListener('resize', fit)
+    return () => removeEventListener('resize', fit)
+  }, [])
   const rows = Array.from({ length: n }, (_, k) => photos.map((p, i) => ({ p, i })).filter(({ i }) => i % n === k))
   // The prints dealt in the intro: spread across the whole folder, starting from its middle.
   // Photos next to each other are usually the same concert under the same light, so dealing the
@@ -196,6 +211,7 @@ export function Mosaic({ photos, title, alt, label, labels }: {
     if (phase !== 'done' || dealing) return
     const els = rowRefs.current.filter(Boolean) as HTMLDivElement[]
     const widths = els.map(period)
+
     let raf = 0, last = performance.now()
     const start = last
     const loop = (now: number) => {
@@ -204,8 +220,11 @@ export function Mosaic({ photos, title, alt, label, labels }: {
       const dt = Math.min(0.05, (now - last) / 1000) * ease * ease
       last = now
       if (opened.current !== null) return
-      els.forEach((_, k) => {
-        const W = widths[k]
+      els.forEach((el, k) => {
+        // Rows resize with the screen (a window resize, a phone rotating): keep each row on the
+        // same photo by scaling its offset, or it wraps at the old width and the rows jump.
+        const W = period(el)
+        if (W !== widths[k]) { pos.current[k] *= W / widths[k]; widths[k] = W }
         let x = pos.current[k] + SPEEDS[k] * dt * (k % 2 ? -1 : 1)
         if (x < W * 0.5) x += W
         else if (x > W * 1.5) x -= W
