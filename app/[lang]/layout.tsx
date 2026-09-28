@@ -13,9 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const tr = t[isLang(lang) ? lang : 'en']
   const cover = featured[0]
   return {
-    metadataBase: new URL(
-      process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000',
-    ),
+    metadataBase: new URL(process.env.SITE_URL ?? 'http://localhost:3000'),
     title: { default: `${site.name} | ${tr.tagline}`, template: `%s | ${site.name}` },
     description: tr.tagline,
     alternates: { languages: { en: '/en', es: '/es' } },
