@@ -12,3 +12,5 @@ data/sets.json
 fixtures
 .vercel
 .DS_Store
+.env*
+flaminhotboi-*.json

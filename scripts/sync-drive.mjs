@@ -287,11 +287,10 @@ async function main() {
     const photos = await processAll(folder, files)
     if (!photos.length) continue
     const info = parseFolderName(name)
-    const coverIdx = Math.max(0, files.findIndex((f) => f.name.startsWith('00')))
     let slug = slugify(`${info.date} ${info.artist}`) || 'set'
     while (slugs.has(slug)) slug += '-2'
     slugs.add(slug)
-    sets.push({ slug, order, ...info, created: folder.created ?? '', cover: photos[Math.min(coverIdx, photos.length - 1)], photos })
+    sets.push({ slug, order, ...info, created: folder.created ?? '', cover: photos[0], photos })
     console.log(`  ${info.artist}${info.date ? `  ${info.date}` : ''}  (${photos.length} photos)`)
   }
   // Numbered folders first, 01 at the top; then the rest, newest first.
